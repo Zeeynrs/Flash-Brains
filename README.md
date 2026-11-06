@@ -1,4 +1,6 @@
-# Kartu C
+# Flash-Brains
+
+Versi awal: **Kartu C**.
 
 Webapp flashcard belajar pemrograman C dalam bahasa Indonesia. Delapan topik berurutan, 40 kartu, dari struktur program sampai array dua dimensi.
 
@@ -15,3 +17,7 @@ npm test
 ```
 
 Lihat [petunjuk aplikasi](kartu-c/README.md) untuk struktur dan perilaku penyimpanan progres.
+
+## Lisensi
+
+Proyek ini menggunakan [GNU GPL v3.0](LICENSE).
