@@ -6,7 +6,7 @@
   color:#416f98;
   padding:5px 9px;
   border-radius:8px;
-  font-size:11px;
+  font-size:14px;
   font-weight:900
 }
 .exercise-type svg {
@@ -73,7 +73,7 @@
   border-radius:9px;
   display:grid;
   place-items:center;
-  font-size:12px;
+  font-size:15px;
   font-weight:900;
   color:#77879a;
   flex-shrink:0;
@@ -81,7 +81,7 @@
   line-height:1
 }
 .option-text {
-  font-size:15px;
+  font-size:17px;
   font-weight:800;
   line-height:1.7;
   white-space:pre-wrap;
@@ -91,7 +91,7 @@
 }
 .option-text small {
   display:block;
-  font-size:11px;
+  font-size:14px;
   margin-top:3px;
   color:#417c2b;
   font-weight:900
@@ -126,7 +126,7 @@
 }
 .fill-control>label {
   display:block;
-  font-size:14px;
+  font-size:16px;
   font-weight:900;
   margin-bottom:11px
 }
@@ -137,7 +137,7 @@
   border-radius:13px;
   min-height:58px;
   padding:14px 16px;
-  font:15px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;
+  font:17px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;
   background:#f8fbfe;
   color:var(--text);
   box-shadow:inset 0 3px 0 #edf2f6
@@ -152,12 +152,12 @@
   -webkit-text-fill-color:#3e5065
 }
 .fill-control input::placeholder {
-  font:13px 'Nunito',system-ui,sans-serif;
+  font:16px 'Nunito',system-ui,sans-serif;
   color:#60738b;
   font-weight:600
 }
 .fill-control>p {
-  font-size:12px;
+  font-size:15px;
   color:var(--muted);
   margin-top:10px;
   line-height:1.8
@@ -166,7 +166,7 @@
   margin-top:25px
 }
 .order-control>p {
-  font-size:13px;
+  font-size:16px;
   line-height:1.8;
   color:var(--muted);
   margin-bottom:14px
@@ -186,7 +186,7 @@
   text-align:center;
   margin:auto;
   color:#70839b;
-  font-size:13px;
+  font-size:16px;
   font-weight:800
 }
 .placed-token {
@@ -208,7 +208,7 @@
   flex:1;
   min-width:0;
   line-height:1.7;
-  font-size:12px
+  font-size:15px
 }
 .placed-token svg {
   width:14px;
@@ -221,7 +221,7 @@
   border-color:#9cc6e4
 }
 .line-number {
-  font-size:11px;
+  font-size:14px;
   color:#6686a4;
   padding-top:2px;
   min-width:12px;
@@ -246,7 +246,7 @@
   transition:transform .15s,box-shadow .15s,background .15s
 }
 .code-token code {
-  font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;
+  font:15px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;
   white-space:pre-wrap;
   overflow-wrap:anywhere
 }
@@ -271,14 +271,14 @@
 .input-count {
   display:block;
   color:var(--muted);
-  font-size:12px;
+  font-size:15px;
   margin-top:13px;
   font-weight:800
 }
 .match-control legend {
   float:left;
   width:100%;
-  font-size:13px;
+  font-size:16px;
   font-weight:700;
   color:var(--muted);
   margin:0 0 17px;
@@ -293,7 +293,7 @@
   margin-top:14px
 }
 .match-row label {
-  font-size:14px;
+  font-size:16px;
   font-weight:800;
   line-height:1.7;
   overflow-wrap:anywhere;
@@ -301,7 +301,7 @@
 }
 .match-row>span {
   color:#9b83c1;
-  font-size:18px;
+  font-size:20px;
   font-weight:900
 }
 .match-row select {
@@ -323,13 +323,13 @@
   -webkit-text-fill-color:var(--text)
 }
 .match-help {
-  font-size:12px;
+  font-size:15px;
   color:var(--muted);
   margin-top:17px
 }
 .match-preview {
   grid-column:3;
-  font-size:12px;
+  font-size:15px;
   line-height:1.8;
   color:#7c659f;
   overflow-wrap:anywhere
@@ -338,7 +338,7 @@
   display:none
 }
 .input-note {
-  font-size:12px;
+  font-size:15px;
   color:#926528;
   margin-top:13px;
   min-height:0
@@ -355,7 +355,7 @@
   padding-bottom:5px
 }
 .quiz-actions>span {
-  font-size:12px;
+  font-size:15px;
   color:var(--muted);
   max-width:230px;
   line-height:1.8
@@ -442,14 +442,14 @@
   border:1px solid #dfcbf6;
   padding:3px 8px;
   border-radius:8px;
-  font-size:12px;
+  font-size:15px;
   font-weight:900;
   white-space:nowrap;
   align-self:start;
   margin-top:3px
 }
 .feedback-copy>p {
-  font-size:13px;
+  font-size:16px;
   line-height:1.9;
   color:#4c6540;
   overflow-wrap:anywhere
@@ -458,18 +458,18 @@
   color:#7b683f
 }
 .feedback-copy>p.retry-note {
-  font-size:11px;
+  font-size:14px;
   margin-top:11px;
   color:#68745b
 }
 .feedback-copy>p.answer-key-label {
-  font-size:11px;
+  font-size:14px;
   font-weight:900;
   color:#8b7038;
   margin:13px 0 7px
 }
 .answer-key {
-  font:12px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;
+  font:15px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   background:#fffdf6;
@@ -495,7 +495,7 @@
   align-items:center;
   gap:9px;
   min-height:43px;
-  font-size:13px;
+  font-size:16px;
   font-weight:800;
   color:#687b91
 }
@@ -508,7 +508,7 @@
   color:#6999be
 }
 .reference-panel summary>span {
-  font-size:11px;
+  font-size:14px;
   margin-left:auto;
   font-weight:600;
   white-space:nowrap
@@ -523,7 +523,7 @@
   content:'−'
 }
 .reference-intro {
-  font-size:12px;
+  font-size:15px;
   line-height:1.8;
   margin:15px 0;
   color:var(--muted)
@@ -533,12 +533,12 @@
   border-top:2px solid #edf2f7
 }
 .reference-card h3 {
-  font-size:15px;
+  font-size:17px;
   line-height:1.7;
   margin-bottom:11px
 }
 .reference-card p {
-  font-size:13px;
+  font-size:16px;
   line-height:1.9;
   color:var(--muted);
   margin-top:8px
@@ -548,7 +548,7 @@
   font-weight:900
 }
 .reference-card .question-code {
-  font-size:12px;
+  font-size:15px;
   padding:16px;
   margin-top:13px
 }
@@ -562,7 +562,7 @@
   color:#8d6e2c;
   border:2px solid #efdfb4;
   border-radius:13px;
-  font-size:12px;
+  font-size:15px;
   font-weight:800;
   line-height:1.8
 }
@@ -577,7 +577,7 @@
   border-color:#e1d2f5
 }
 .quiz-summary .summary-retry {
-  font-size:12px!important
+  font-size:15px!important
 }
 .mobile-coach {
   display:none
@@ -602,7 +602,7 @@
     margin:-10px 0
   }
   .mobile-coach p {
-    font-size:12px;
+    font-size:15px;
     line-height:1.7;
     color:#81659e;
     font-weight:800
@@ -616,10 +616,10 @@
     gap:15px
   }
   .quiz-actions>span {
-    font-size:11px
+    font-size:14px
   }
   .check-button {
-    font-size:13px;
+    font-size:16px;
     min-width:185px
   }
   .quiz-feedback {
@@ -631,13 +631,13 @@
     width:70px
   }
   .feedback-heading h2 {
-    font-size:18px
+    font-size:20px
   }
   .choice-group {
     gap:11px
   }
   .option-text {
-    font-size:14px
+    font-size:16px
   }
   .match-row {
     grid-template-columns:minmax(0,.8fr) 15px minmax(0,1.4fr)
@@ -652,7 +652,7 @@
     margin-top:21px
   }
   .exercise-type {
-    font-size:11px;
+    font-size:14px;
     padding:4px 7px;
     gap:5px
   }
@@ -671,17 +671,17 @@
     border-radius:13px
   }
   .option-key {
-    font-size:11px;
+    font-size:14px;
     width:25px;
     height:25px;
     border-radius:8px
   }
   .option-text {
-    font-size:13px;
+    font-size:16px;
     line-height:1.7
   }
   .option-text small {
-    font-size:11px
+    font-size:14px
   }
   .quiz-actions {
     flex-direction:column-reverse;
@@ -692,11 +692,11 @@
   .quiz-actions .check-button {
     width:100%;
     min-height:51px;
-    font-size:13px
+    font-size:16px
   }
   .quiz-actions>span {
     text-align:center;
-    font-size:11px
+    font-size:14px
   }
   .quiz-feedback {
     display:block;
@@ -717,43 +717,43 @@
     min-height:41px
   }
   .feedback-heading h2 {
-    font-size:17px;
+    font-size:19px;
     min-width:0;
     margin-bottom:8px
   }
   .feedback-heading>span.xp-earned {
     display:inline-flex;
-    font-size:11px;
+    font-size:14px;
     margin-top:0
   }
   .feedback-copy {
     position:static
   }
   .feedback-copy>p {
-    font-size:12px
+    font-size:15px
   }
   .feedback-copy>p.answer-key-label {
     clear:both
   }
   .answer-key {
-    font-size:11px;
+    font-size:14px;
     padding:13px 11px
   }
   .fill-control>label {
-    font-size:13px
+    font-size:16px
   }
   .fill-control input {
-    font-size:14px;
+    font-size:16px;
     min-height:55px
   }
   .fill-control input::placeholder {
-    font-size:12px
+    font-size:15px
   }
   .fill-control>p {
-    font-size:11px
+    font-size:14px
   }
   .order-control>p {
-    font-size:12px
+    font-size:15px
   }
   .code-workspace {
     padding:10px;
@@ -764,10 +764,10 @@
     gap:8px
   }
   .placed-token code,.code-token code {
-    font-size:11px
+    font-size:14px
   }
   .line-number {
-    font-size:11px
+    font-size:14px
   }
   .code-token {
     padding:10px 11px
@@ -776,10 +776,10 @@
     gap:9px
   }
   .input-count {
-    font-size:11px
+    font-size:14px
   }
   .match-control legend {
-    font-size:12px
+    font-size:15px
   }
   .match-row {
     grid-template-columns:1fr;
@@ -794,12 +794,12 @@
     display:none
   }
   .match-row label {
-    font-size:13px;
+    font-size:16px;
     font-weight:900;
     line-height:1.8
   }
   .match-row select {
-    font-size:12px;
+    font-size:15px;
     min-height:48px;
     padding-left:11px;
     background:#fff;
@@ -808,17 +808,17 @@
   }
   .match-preview {
     grid-column:1;
-    font-size:11px
+    font-size:14px
   }
   .match-help {
-    font-size:11px
+    font-size:14px
   }
   .reference-panel {
     padding:10px 13px;
     border-radius:14px
   }
   .reference-panel summary {
-    font-size:12px;
+    font-size:15px;
     align-items:flex-start;
     line-height:1.8;
     padding-top:8px
@@ -835,18 +835,18 @@
     font-size:20px
   }
   .reference-card h3 {
-    font-size:14px
+    font-size:16px
   }
   .reference-card p {
-    font-size:12px
+    font-size:15px
   }
   .round-banner {
-    font-size:11px;
+    font-size:14px;
     padding:12px 13px;
     line-height:1.8
   }
   .mobile-coach p {
-    font-size:11px
+    font-size:14px
   }
 }
 @media(prefers-reduced-motion:reduce) {
@@ -854,4 +854,27 @@
     transition:none;
     transform:none!important
   }
+}
+
+/* Learning content takes priority over compact labels. */
+.option-text {font-size:18px;font-weight:700;line-height:1.7}
+.feedback-copy>p,.feedback-copy>p.retry-note,.reference-card p,.reference-intro,
+.fill-control>p,.order-control>p,.match-control legend,.match-help,.match-preview {
+  font-size:16px;
+  line-height:1.85;
+}
+.quiz-card h2 {font-size:25px;font-weight:800;line-height:1.55}
+.answer-key,.placed-token code,.code-token code {font-size:15px;line-height:1.9}
+.fill-control input,.match-row select {font-size:17px;line-height:1.6}
+.fill-control input::placeholder {font-size:16px}
+.match-row label,.reference-card h3 {font-size:17px;font-weight:800;line-height:1.7}
+.check-button {font-size:16px;min-height:54px}
+.feedback-heading h2 {font-size:21px;font-weight:800;line-height:1.5}
+@media(max-width:480px) {
+  .quiz-card h2 {font-size:24px}
+  .option-text {font-size:17px}
+  .feedback-heading h2 {font-size:21px}
+  .reference-panel summary {font-size:16px}
+  .quiz-actions>span {font-size:14px;line-height:1.8}
+  .quiz-actions .check-button {font-size:16px}
 }
