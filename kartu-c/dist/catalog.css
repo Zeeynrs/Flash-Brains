@@ -199,3 +199,10 @@ body.drawer-open {overflow:hidden}
   .catalog-page-label {font-size:16px}
   .sidebar .nav-label {font-size:14px}
 }
+
+/* Python keeps its own blue-and-yellow course identity within the shared UI. */
+.catalog-course-card[data-tone="blue"] {border-color:#c5ddf1}
+.catalog-course-card[data-tone="blue"] .catalog-course-symbol {background:#e5f3ff;border-color:#b2d4f0;box-shadow:0 4px 0 #d4e5f4;color:#316e9e}
+.catalog-course-card[data-tone="blue"] .catalog-level {background:#fff4c8;color:#775b16;border-color:#efdb8e}
+.catalog-course-card[data-tone="blue"] h3 a:hover,.catalog-course-card[data-tone="blue"] .catalog-course-progress>strong {color:#326e9e}
+main[data-course="python"] .course-symbol {background:#e5f3ff;border-color:#b2d4f0;color:#316e9e}

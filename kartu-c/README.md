@@ -1,6 +1,6 @@
-# Flash Brains — latihan C
+# Flash Brains — latihan C dan Python
 
-Webapp belajar C berbahasa Indonesia, dari struktur program sampai array dua dimensi. Delapan topik, masing-masing sepuluh latihan dan lima kartu referensi. Tidak membutuhkan instalasi dependensi atau backend.
+Webapp belajar berbahasa Indonesia dengan dua pelajaran: C dari struktur program sampai array dua dimensi, dan Python 3 dari print sampai slicing dan list bersarang. Setiap pelajaran memiliki delapan topik, masing-masing sepuluh latihan dan lima kartu referensi. Tidak membutuhkan instalasi dependensi atau backend.
 
 ## Menjalankan
 
@@ -27,21 +27,25 @@ npm test
 - Jawaban yang belum diperiksa, feedback, urutan soal, dan sesi setiap topik tersimpan di localStorage; reload dan pergantian topik tidak menghapusnya.
 - Topik yang sudah selesai dapat dimainkan kembali tanpa mengunci progres.
 - Setiap soal memberikan 10 XP saat pertama kali dijawab benar. Mengulang soal tidak menggandakan XP.
-- Target harian: lima soal berbeda dijawab benar. Review ikut dihitung sekali per soal per hari. Streak menghitung hari berturut-turut saat target terpenuhi, berdasarkan tanggal lokal perangkat. Streak kemarin tetap ditampilkan selama hari ini masih berlangsung.
-- Catatan materi tetap menyediakan 40 kartu asli. Penyelesaian kartu lama dan akses topik dimigrasikan ke skema versi 2, tanpa memberikan XP atau mastery kuis yang belum dikerjakan.
+- Progres, jawaban, dan sesi C/Python disimpan terpisah. Berpindah pelajaran tidak menghapus draft atau feedback.
+- XP dan misi harian menggabungkan kedua pelajaran. Target harian: lima soal berbeda dijawab benar. Review ikut dihitung sekali per soal per hari. Streak menghitung hari berturut-turut saat target terpenuhi, berdasarkan tanggal lokal perangkat. Streak kemarin tetap ditampilkan selama hari ini masih berlangsung.
+- Setiap pelajaran menyediakan 40 kartu referensi. Catatan materi C tetap menyediakan 40 kartu asli. Penyelesaian kartu lama dan akses topik dimigrasikan ke skema versi 2, tanpa memberikan XP atau mastery kuis yang belum dikerjakan.
 
 Penyimpanan terbatas pada browser dan origin yang sama. Menghapus data situs menghapus progres; tidak ada sinkronisasi antarperangkat. Jika localStorage tidak tersedia, aplikasi tetap berjalan dengan pemberitahuan bahwa progres tidak tersimpan.
 
-Materi ditujukan untuk C99 atau lebih baru. Jawaban diperiksa terhadap kunci soal, bukan dengan menjalankan kode pengguna. Aplikasi tidak mengeksekusi kode di browser. Soal kode rusak merupakan latihan mencari kesalahan; hasil undefined behavior tidak diminta untuk ditebak.
+Materi C ditujukan untuk C99 atau lebih baru; materi Python memakai Python 3. Jawaban diperiksa terhadap kunci soal, bukan dengan menjalankan kode pengguna. Aplikasi tidak mengeksekusi kode di browser. Soal kode rusak merupakan latihan mencari kesalahan; hasil undefined behavior tidak diminta untuk ditebak.
 
-Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengompilasi dan menjalankan 40 contoh output (12 referensi dan 28 kuis), serta memeriksa sintaks seluruh kunci susun kode dan lengkapi kode. Pengujian compiler dilewati jika GCC tidak tersedia.
+Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengompilasi dan menjalankan 40 contoh output (12 referensi dan 28 kuis), serta memeriksa sintaks seluruh kunci susun kode dan lengkapi kode. Pengujian compiler dilewati jika GCC tidak tersedia. Suite Python memeriksa struktur materi dan menjalankan contoh output serta semua kunci lengkapi/susun kode memakai Python 3, dengan batas waktu proses.
 
 ## Struktur
 
 - `dist/curriculum.js`: 40 kartu dan penjelasan.
 - `dist/quizzes.js`: 80 latihan dengan kunci dan penjelasan.
 - `dist/quiz-engine.js`: penilaian jawaban dan pengacakan yang konsisten selama sesi.
-- `dist/state.js`: transisi sesi, putaran ulang, migrasi progres, XP, target dan streak.
+- `dist/state.js`: konfigurasi C dengan key asli dan migrasi progres lama.
+- `dist/learning-state.js`: mesin sesi bersama, putaran ulang, validasi progres, XP, target dan gabungan streak.
+- `dist/python-curriculum.js`, `dist/python-quizzes.js`: 40 kartu referensi dan 80 latihan Python.
+- `dist/course-content.js`: pemetaan konten dan mesin progres per pelajaran.
 - `dist/quiz-view.js`: kontrol jawaban, feedback dan catatan referensi.
 - `dist/mascot.js`: karakter SVG Byte, logo dan dekorasi perayaan orisinal.
 - `dist/courses.js`: registry metadata pelajaran yang tersedia dan pencarian katalog.
@@ -50,8 +54,8 @@ Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengo
 - `dist/catalog-view.js`: beranda umum, kartu pelajaran, pencarian dan sesi lanjutan.
 - `dist/app.js`: antarmuka dan penyimpanan browser.
 - `dist/styles.css`, `dist/quiz.css` dan `dist/catalog.css`: tampilan responsif.
-- `tests/`: pengujian penilaian, alur belajar, migrasi, reward dan ketepatan contoh C.
+- `tests/`: pengujian penilaian, alur belajar, migrasi, reward dan ketepatan contoh C/Python dan pemisahan progres pelajaran.
 
 Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dekoratif dapat dijeda melalui tombol **Animasi aktif** di sidebar atau menu pada HP; pilihan diingat di browser. Preferensi perangkat untuk mengurangi gerakan selalu dihormati.
 
-Beranda `#/` menampilkan pelajaran yang benar-benar tersedia. C mempunyai halaman sendiri di `#/pelajaran/c`, dengan topik di `#/pelajaran/c/topik/<id>`. Pelajaran yang belum dibuka atau belum tersedia tidak dapat diakses melalui deep link. Menutup sidebar desktop memberi lebih banyak ruang baca; preferensinya terpisah dari data kuis. Drawer HP menutup saat navigasi tanpa mengubah preferensi desktop.
+Beranda `#/` menampilkan pelajaran yang benar-benar tersedia. C mempunyai halaman sendiri di `#/pelajaran/c`, dengan topik di `#/pelajaran/c/topik/<id>`. Python tersedia di `#/pelajaran/python` dengan topik `#/pelajaran/python/topik/<id>`. Urutan Python: kenalan, variabel dan tipe data, input/output, operator, percabangan, perulangan, list, lalu slicing dan list bersarang. Pelajaran yang belum dibuka atau belum tersedia tidak dapat diakses melalui deep link. Menutup sidebar desktop memberi lebih banyak ruang baca; preferensinya terpisah dari data kuis. Drawer HP menutup saat navigasi tanpa mengubah preferensi desktop.

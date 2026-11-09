@@ -1,6 +1,6 @@
 # Flash-Brains
 
-Webapp belajar berbahasa Indonesia dengan beranda katalog pelajaran. Pelajaran yang tersedia saat ini adalah **Pemrograman C**, berisi 80 latihan interaktif di delapan topik, dari struktur program sampai array dua dimensi. Dilengkapi 40 kartu referensi, XP, target harian, dan streak.
+Webapp belajar berbahasa Indonesia dengan beranda katalog pelajaran. Tersedia **Pemrograman C** (struktur program sampai array dua dimensi) dan **Pemrograman Python** (print sampai slicing dan list bersarang). Masing-masing memiliki delapan topik, 80 latihan interaktif, dan 40 kartu referensi, dilengkapi XP, target harian, dan streak.
 
 Variasi latihan: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika. Jawaban diperiksa otomatis; soal yang salah dikumpulkan untuk diulang di akhir putaran. Tuntaskan sembilan latihan lalu tantangan akhir untuk membuka topik berikutnya.
 
@@ -18,7 +18,7 @@ npm test
 
 Lihat [petunjuk aplikasi](kartu-c/README.md) untuk struktur dan perilaku penyimpanan progres.
 
-Setiap soal memberi 10 XP hanya saat pertama kali dijawab benar. Target harian adalah lima soal berbeda yang dijawab benar; latihan ulang juga dihitung untuk target. Progres versi flashcard sebelumnya dimigrasikan otomatis dengan mempertahankan akses topik yang sudah terbuka.
+Setiap soal memberi 10 XP hanya saat pertama kali dijawab benar. Target harian adalah lima soal berbeda yang dijawab benar dari gabungan semua pelajaran; latihan ulang juga dihitung untuk target. XP dan streak ditampilkan bersama, sedangkan progres topik, jawaban, dan sesi C/Python disimpan terpisah. Progres versi flashcard sebelumnya dimigrasikan otomatis dengan mempertahankan akses topik yang sudah terbuka.
 
 UI berwarna dengan jalur level berkelok, tombol dengan efek tekan, dan karakter kartun orisinal **Byte** yang menemani latihan. Responsif untuk HP, tablet dan desktop; animasi dapat dijeda dan mengikuti preferensi kurangi gerakan perangkat.
 
@@ -27,10 +27,12 @@ UI berwarna dengan jalur level berkelok, tombol dengan efek tekan, dan karakter 
 - `#/`: katalog dan pencarian pelajaran, serta melanjutkan sesi yang belum selesai.
 - `#/pelajaran/c`: peta pelajaran Pemrograman C.
 - `#/pelajaran/c/topik/struktur`: contoh tautan langsung ke topik C.
+- `#/pelajaran/python`: peta pelajaran Pemrograman Python.
+- `#/pelajaran/python/topik/py-mulai`: topik pertama Python.
 
 Sidebar kiri bisa dibuka/ditutup lewat tombol Menu. Pilihan desktop diingat di browser. Di HP, menu menjadi drawer dengan backdrop, tombol tutup, Escape dan dukungan keyboard. Back/Forward dan reload mempertahankan sesi belajar.
 
-Metadata katalog dikelola di `kartu-c/dist/courses.js`. Pelajaran baru membutuhkan materi dan integrasi provider/state di aplikasi sebelum ditandai `available`; daftar katalog tidak otomatis membuat isi pelajarannya. Engine C saat ini tetap memakai key progres asli agar data lama aman.
+Metadata katalog dikelola di `kartu-c/dist/courses.js`. Pelajaran baru membutuhkan materi dan integrasi provider/state di aplikasi sebelum ditandai `available`; daftar katalog tidak otomatis membuat isi pelajarannya. Konten dan engine setiap pelajaran didaftarkan di `course-content.js`, menggunakan mesin sesi bersama di `learning-state.js`. C tetap memakai key progres asli `kartu-c-progress-v1` agar data lama aman; Python memakai `flash-brains-python-progress-v1`.
 
 ## Deployment Vercel
 
