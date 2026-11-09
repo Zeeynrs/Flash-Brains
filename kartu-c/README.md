@@ -43,8 +43,9 @@ Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengo
 - `dist/quiz-engine.js`: penilaian jawaban dan pengacakan yang konsisten selama sesi.
 - `dist/state.js`: transisi sesi, putaran ulang, migrasi progres, XP, target dan streak.
 - `dist/quiz-view.js`: kontrol jawaban, feedback dan catatan referensi.
+- `dist/mascot.js`: karakter SVG Byte, logo dan dekorasi perayaan orisinal.
 - `dist/app.js`: antarmuka dan penyimpanan browser.
 - `dist/styles.css` dan `dist/quiz.css`: tampilan responsif.
 - `tests/`: pengujian penilaian, alur belajar, migrasi, reward dan ketepatan contoh C.
 
-Font Instrument Sans dan Instrument Serif dimuat dari Google Fonts; tersedia fallback font sistem bila offline.
+Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dekoratif dapat dijeda melalui tombol **Animasi aktif** di sidebar atau menu Topik pada HP; pilihan diingat di browser. Preferensi perangkat untuk mengurangi gerakan selalu dihormati.

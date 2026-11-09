@@ -3,6 +3,7 @@ import { exercisesForTopic, exerciseById } from './quizzes.js';
 import { isAnswerComplete, typeLabels } from './quiz-engine.js';
 import { isUnlocked, topicComplete, startTopic, setDraft, submitAnswer, advanceSession, currentSession, readProgress, saveProgress, learningStats } from './state.js';
 import { escape, icon, codeBlock, answerControls, feedbackMarkup, referenceMarkup } from './quiz-view.js';
+import { brandMark, byteMascot, confetti } from './mascot.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
@@ -24,6 +25,13 @@ const persist=()=> {
 };
 const persistDraft=()=>{state=setDraft(state,draft);persist();};
 const stats=()=>learningStats(state);
+const motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionPaused=false;
+try {motionPaused=storage?.getItem('flash-brains-motion')==='paused';} catch { /* Preference remains available in memory. */ }
+function applyMotionPreference() {document.documentElement.dataset.motion=motionPaused||motionMedia.matches?'paused':'on';}
+applyMotionPreference();
+motionMedia.addEventListener('change',()=>{applyMotionPreference();renderSidebar();});
+document.querySelector('.mobile-header .brand-mark').innerHTML=brandMark();
 function nextTopic() {
   return topics.find(t=>isUnlocked(state,t.id) && !topicComplete(state,t.id)) ?? topics.find(t=>mastered(t)<10 && isUnlocked(state,t.id)) ?? topics[0];
 }
@@ -34,32 +42,37 @@ function closeMenu(restoreFocus=false) {
   if(wasOpen && restoreFocus) document.querySelector('#menu-toggle').focus();
 }
 function renderSidebar() {
-  sidebar.innerHTML=`<a href="#" class="brand desktop-brand" aria-label="Flash Brains, beranda"><span class="brand-mark" aria-hidden="true">{c}</span> Flash Brains</a><p class="sidebar-subtitle">Petualangan kecil, fondasi kuat.</p>
-    <button class="nav-home ${screen==='home'?'selected':''}" data-action="home">${icon('layers')}<span>Jalur belajar</span></button>
-    <p class="nav-label">Pemrograman dasar C</p><nav aria-label="Daftar topik">${topics.map((t,i)=>`<button class="nav-topic ${screen==='learn' && state.activeTopicId===t.id?'selected':''}" data-topic="${t.id}" ${!isUnlocked(state,t.id)?'disabled':''} ${screen==='learn' && state.activeTopicId===t.id?'aria-current="step"':''}><span class="nav-number ${topicComplete(state,t.id)?'done':''}">${topicComplete(state,t.id)?icon('check'):String(i+1).padStart(2,'0')}</span><span>${escape(t.title)}</span>${!isUnlocked(state,t.id)?icon('lock'):''}<span class="sr-only">${!isUnlocked(state,t.id)?', terkunci':topicComplete(state,t.id)?', selesai':', terbuka'}</span></button>`).join('')}</nav>
-    <div class="sidebar-bottom"><div class="mini-progress"><span>Latihan dikuasai</span><span>${stats().solvedCount}/80</span></div><progress max="80" value="${stats().solvedCount}" aria-label="Total latihan dikuasai"></progress><p>Salah itu petunjuk.<br>Kita coba lagi di akhir.</p><span class="local-label">${notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia'}</span></div>`;
+  const paused=motionPaused||motionMedia.matches;
+  sidebar.innerHTML=`<a href="#" class="brand desktop-brand" aria-label="Flash Brains, beranda"><span class="brand-mark">${brandMark()}</span><span>flash<span class="brand-word">brains</span></span></a><p class="sidebar-subtitle">Otak aktif. Belajar asyik.</p>
+    <button class="nav-home ${screen==='home'?'selected':''}" data-action="home">${icon('home')}<span>Belajar</span><span class="nav-current-dot" aria-hidden="true"></span></button>
+    <p class="nav-label">Petualangan bahasa C</p><nav aria-label="Daftar topik">${topics.map((t,i)=>`<button class="nav-topic ${screen==='learn' && state.activeTopicId===t.id?'selected':''}" data-topic="${t.id}" ${!isUnlocked(state,t.id)?'disabled':''} ${screen==='learn' && state.activeTopicId===t.id?'aria-current="step"':''}><span class="nav-number ${topicComplete(state,t.id)?'done':''}">${topicComplete(state,t.id)?icon('check'):String(i+1).padStart(2,'0')}</span><span>${escape(t.title)}</span>${!isUnlocked(state,t.id)?icon('lock'):''}<span class="sr-only">${!isUnlocked(state,t.id)?', terkunci':topicComplete(state,t.id)?', selesai':', terbuka'}</span></button>`).join('')}</nav>
+    <button class="sidebar-help text-button" data-action="guide">${icon('help')} Cara bermain</button>
+    <button id="motion-toggle" class="motion-toggle text-button" data-action="motion" aria-pressed="${paused}" aria-label="${motionMedia.matches?'Animasi mengikuti preferensi kurangi gerakan perangkat':paused?'Aktifkan animasi':'Jeda animasi'}" ${motionMedia.matches?'disabled':''}>${icon(paused?'play':'pause')}<span>${motionMedia.matches?'Gerakan dikurangi':paused?'Animasi dijeda':'Animasi aktif'}</span></button>
+    <div class="sidebar-bottom"><div class="mini-progress"><span>Makin jago!</span><strong>${stats().solvedCount}/80</strong></div><progress max="80" value="${stats().solvedCount}" aria-label="Total latihan dikuasai"></progress><p>Pelan-pelan juga sampai.<br>Yang penting, terus coba.</p><span class="local-label">${notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia'}</span></div>`;
 }
-const rewardBar=()=>`<div class="reward-bar" aria-label="Pencapaian belajar"><span class="reward-pill">${icon('bolt')}<strong>${stats().xp}</strong> XP</span><span class="reward-pill streak-pill">${icon('fire')}<strong>${stats().streak}</strong> hari streak</span></div>`;
+const rewardBar=()=>`<div class="reward-bar" aria-label="Pencapaian belajar"><span class="reward-pill xp-pill" title="XP yang sudah kamu kumpulkan">${icon('gem')}<strong>${stats().xp}</strong><span>XP</span></span><span class="reward-pill streak-pill" title="Hari berturut-turut mencapai target">${icon('fire')}<strong>${stats().streak}</strong><span>hari</span></span></div>`;
 function renderHome() {
   const active=session() && session().phase!=='done'?currentTopic():nextTopic();
   const finished=topics.filter(t=>topicComplete(state,t.id)).length;
   const allDone=stats().solvedCount===80, continuing=state.sessions[active.id] && state.sessions[active.id].phase!=='done';
   const legacy=Object.values(state.learned).some(ids=>ids.length);
-  main.innerHTML=`<div class="page-top"><span>Jalur belajar · Dasar C</span>${rewardBar()}</div>
-    <header class="page-heading"><h1 tabindex="-1">${allDone?'Fondasi kuat.<br>Terus asah ingatan.':'Mainkan logikamu.<br>Selangkah lebih paham.'}</h1><p>Susun kode, pecahkan teka-teki, dan temukan jawabannya. <br>Satu latihan kecil membawa kamu lebih jauh.</p></header>
-    ${legacy?'<p class="legacy-notice">Progres kartu lamamu tetap tersimpan. Coba latihan baru di topik yang sudah terbuka untuk mengumpulkan XP.</p>':''}
-    <section class="overview-grid" aria-label="Lanjutkan belajar"><div class="continue-panel quiz-continue"><div class="continue-copy"><span class="eyebrow">${continuing?'Petualanganmu belum selesai':allDone?'Jaga ingatan tetap tajam':'Langkah berikutnya'}</span><h2>${escape(active.title)}</h2><p>${escape(active.description)}</p><div class="lesson-meta"><span>Unit ${String(topics.indexOf(active)+1).padStart(2,'0')}</span><span>10 latihan · 7 variasi</span></div><button class="primary" data-topic="${active.id}">${continuing?'Lanjutkan latihan':allDone?'Latihan lagi':'Mulai tantangan'} ${icon('arrow')}</button></div>
-    <div class="challenge-preview" aria-label="Contoh teka-teki C"><div class="code-caption"><span>Teka-teki kecil</span><span>C</span></div><pre><code><span class="code-muted">// Bisa tebak hasilnya?</span>
-
-<span class="code-type">int</span> langkah = 2;
-langkah += 3;
-printf(<span class="code-string">"%d"</span>, langkah);</code></pre><div class="preview-answers" aria-hidden="true"><span>2</span><span>5</span><span>3</span></div></div></div>
-    <div class="journey-panel daily-panel"><span class="eyebrow">${icon('target')} Target hari ini</span><div class="big-number">${Math.min(stats().todayCount,5)}<span> / 5</span></div><p>soal berbeda dijawab benar</p><progress max="5" value="${Math.min(stats().todayCount,5)}" aria-label="Target harian lima soal benar"></progress><p class="goal-status">${stats().todayCount>=5?'Target tercapai. Bagus sekali!':`${5-stats().todayCount} lagi untuk menjaga streak.`}</p><p class="journey-note">Streak bertambah saat target harian tercapai. Latihan ulang juga dihitung.</p></div></section>
-    <section class="curriculum"><div class="section-heading"><div><h2>Peta belajar C</h2><p>9 latihan, 1 tantangan akhir. Soal yang salah diulang di akhir.</p></div><span class="topic-count">${finished}/8 topik selesai</span></div><div class="topic-grid quiz-topic-grid">${topics.map((t,i)=>{
-      const open=isUnlocked(state,t.id), done=topicComplete(state,t.id), legacyDone=state.legacyCompleted.includes(t.id) && mastered(t)<10;
-      return `<button class="topic-row quiz-topic-row ${done?'is-done':open?'is-open':'is-locked'}" data-topic="${t.id}" ${!open?'disabled':''}><span class="path-node">${done?icon('check'):String(i+1).padStart(2,'0')}</span><span class="topic-content"><span class="topic-title">${escape(t.title)}</span><span class="topic-description">${escape(t.description)}</span><span class="exercise-track" aria-hidden="true">${exercisesForTopic(t.id).map((ex,n)=>`<span class="${state.solved[t.id]?.includes(ex.id)?'filled':''} ${n===9?'challenge-tick':''}"></span>`).join('')}</span><span class="topic-status">${!open?`Selesaikan topik ${i} untuk membuka`:legacyDone?`${mastered(t)}/10 kuis · progres lama tersimpan`:mastered(t)===10?'10/10 dikuasai · latihan lagi':`${mastered(t)}/10 dikuasai · ${state.sessions[t.id]?'lanjutkan':'siap dimainkan'}`}</span></span><span class="topic-trailing">${icon(!open?'lock':mastered(t)===10?'star':'arrow')}</span></button>`;
-    }).join('')}</div></section><footer class="page-footer"><span>80 latihan. Banyak jalan untuk paham.</span><button class="text-button" data-action="guide" aria-expanded="${showGuide}">Cara bermain ${showGuide?'−':'+'}</button></footer>
-    ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Belajar dari setiap percobaan.</h2><ol><li>Jawab soal, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca penjelasannya. Jawaban salah masuk putaran ulang setelah soal lainnya selesai.</li><li>Tuntaskan latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dalam satu hari untuk mencapai target dan menambah streak. Review dihitung untuk target harian, tetapi tidak menggandakan XP. Tanggal mengikuti perangkatmu. Progres tersimpan di browser ini dan tidak tersinkron antarperangkat. Kode menggunakan C99 atau lebih baru, ditampilkan sebagai latihan, dan tidak dieksekusi di browser.</p></section>`:''}`;
+  const colors=['green','violet','blue','orange','pink','teal','indigo','gold'];
+  const glyphs=['code','gem','terminal','bolt','branch','repeat','layers','grid'];
+  main.innerHTML=`<div class="page-top"><span class="course-chip"><span class="course-symbol" aria-hidden="true">C</span><span>Bahasa C <small>Dari nol sampai array</small></span></span>${rewardBar()}</div>
+    <header class="page-heading"><h1 tabindex="-1">${allDone?'Dari nol, sekarang jago array!':'Siap bikin otakmu naik level?'}</h1><p>Latihan kecil hari ini. Skill besar buat nanti.</p></header>
+    ${legacy?'<p class="legacy-notice">Progres kartu lamamu aman! Latihan baru sudah menunggu di topik yang terbuka.</p>':''}
+    <div class="home-layout overview-grid">
+      <section class="continue-panel quiz-continue" aria-label="Lanjutkan belajar"><div class="continue-copy"><span class="eyebrow hero-eyebrow">${icon('flag')} ${continuing?'Lanjutkan petualangan':allDone?'Saatnya latihan ulang':'Petualangan dimulai di sini'}</span><h2>${escape(active.title)}</h2><p>${escape(active.description)}</p><div class="lesson-meta"><span>Unit ${String(topics.indexOf(active)+1).padStart(2,'0')}</span><span>10 latihan seru</span></div><button class="primary" data-topic="${active.id}">${continuing?'Lanjut belajar':allDone?'Main lagi':'Ayo, mulai!'} ${icon('arrow')}</button></div><div class="hero-character">${byteMascot('idle')}<span class="floating-code code-bubble-one" aria-hidden="true">&lt;/&gt;</span><span class="floating-code code-bubble-two" aria-hidden="true">{ C }</span><span class="hero-character-name">Hai, aku Byte!</span></div></section>
+      <aside class="journey-panel daily-panel"><div class="panel-title">${icon('target')}<h2>Misi harian</h2></div><div class="daily-count"><span class="big-number">${Math.min(stats().todayCount,5)}<span>/5</span></span><span>soal benar<br>hari ini</span><span class="goal-trophy" aria-hidden="true">${icon('trophy')}</span></div><progress max="5" value="${Math.min(stats().todayCount,5)}" aria-label="Target harian lima soal benar"></progress><p class="goal-status">${stats().todayCount>=5?'Misi selesai. Kamu keren!':`Tinggal ${5-stats().todayCount} soal lagi. Bisa, yuk!`}</p><p class="journey-note">Capai misi hari ini untuk menambah streak. Latihan ulang juga dihitung.</p></aside>
+      <section class="curriculum"><div class="section-heading"><div><span class="section-kicker">Langkah demi langkah</span><h2>Peta petualanganmu</h2><p>Tak perlu buru-buru. Nikmati setiap levelnya.</p></div><span class="topic-count">${finished}/8 selesai</span></div><div class="path-course-banner"><span class="course-symbol" aria-hidden="true">C</span><div><strong>Dasar pemrograman C</strong><span>8 topik · 80 tantangan · banyak momen “oh, paham!”</span></div>${icon('book')}</div>
+      <div class="topic-grid quiz-topic-grid" id="course-map"><svg id="course-route" class="course-route" aria-hidden="true"></svg>${topics.map((t,i)=>{
+        const open=isUnlocked(state,t.id), done=topicComplete(state,t.id), legacyDone=state.legacyCompleted.includes(t.id) && mastered(t)<10;
+        return `<button class="topic-row quiz-topic-row unit-${colors[i]} ${done?'is-done':open?'is-open':'is-locked'} ${active.id===t.id?'is-next':''}" data-topic="${t.id}" ${!open?'disabled':''} style="--bend:${[0,1,2,1][i%4]}"><span class="path-node">${icon(done?'check':open?glyphs[i]:'lock')}<span class="node-unit" aria-hidden="true">${String(i+1).padStart(2,'0')}</span></span><span class="topic-content"><span class="unit-label">Unit ${String(i+1).padStart(2,'0')}${active.id===t.id && open?'<span class="next-badge">Mulai di sini</span>':''}</span><span class="topic-title">${escape(t.title)}</span><span class="topic-description">${escape(t.description)}</span><span class="exercise-track" aria-hidden="true">${exercisesForTopic(t.id).map((ex,n)=>`<span class="${state.solved[t.id]?.includes(ex.id)?'filled':''} ${n===9?'challenge-tick':''}"></span>`).join('')}</span><span class="topic-status">${!open?`Selesaikan unit ${i} untuk membuka`:legacyDone?`${mastered(t)}/10 latihan · progres lama tersimpan`:mastered(t)===10?'Tuntas! Mau main lagi?':`${mastered(t)}/10 latihan · ${state.sessions[t.id]?'lanjutkan langkahmu':'ayo taklukkan!'}`}</span></span><span class="topic-trailing">${open?icon('arrow'):''}</span></button>`;
+      }).join('')}</div><div class="path-finish"><span>${icon('trophy')}</span><p>${allDone?'Petualangan tuntas! Terus asah logikamu.':'Tujuanmu: paham C, dari main() sampai array.'}</p></div></section>
+      <aside class="coach-rail"><section class="buddy-panel"><div class="buddy-scene">${byteMascot('thinking')}<span class="buddy-speech">Kamu pasti bisa!</span></div><h2>Salah? Santai dulu.</h2><p>Aku simpan soal yang belum tepat. Kita coba lagi di akhir sampai kamu paham.</p><button class="text-button" data-action="guide">Kenali cara bermain ${icon('arrow')}</button></section><section class="course-progress-panel"><div class="panel-title">${icon('star')}<h2>Setiap usaha berarti</h2></div><strong>${stats().solvedCount}<span> / 80 latihan</span></strong><progress max="80" value="${stats().solvedCount}" aria-label="Total latihan dikuasai"></progress><p>Setiap soal baru yang kamu jawab benar memberi 10 XP. Sedikit-sedikit jadi bukit!</p></section><p class="rail-note">Dibuat untuk belajar, bukan terburu-buru.</p></aside>
+      <footer class="page-footer"><span>Belajar. Coba. Paham. Ulangi.</span><button class="text-button" data-action="guide" aria-expanded="${showGuide}">Cara bermain ${showGuide?'−':'+'}</button></footer>
+      ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Jadi jago, satu soal dulu.</h2><ol><li>Pilih jawabanmu, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca petunjuknya. Soal yang salah menunggu di putaran ulang setelah soal lain selesai.</li><li>Selesaikan 9 latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dalam satu hari untuk mencapai misi dan menambah streak. Review dihitung untuk misi harian, tanpa menggandakan XP. Tanggal mengikuti perangkatmu. Progres tersimpan di browser ini dan tidak tersinkron antarperangkat. Kode menggunakan C99 atau lebih baru dan tidak dieksekusi di browser.</p></section>`:''}
+    </div>`;
 }
 function renderLearn() {
   const s=session(), topic=currentTopic();
@@ -70,24 +83,26 @@ function renderLearn() {
   const count=exercisesForTopic(topic.id).findIndex(e=>e.id===ex.id)+1;
   main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="home">${icon('back')} Peta belajar</button>${rewardBar()}</div>
     <header class="lesson-heading"><span class="lesson-unit">Unit ${String(topics.indexOf(topic)+1).padStart(2,'0')} / 08</span><h1 tabindex="-1">${escape(topic.title)}</h1><p>${s.phase==='retry'?'Kita coba lagi. Sekarang kamu sudah tahu petunjuknya.':s.phase==='challenge'?'Langkah terakhir sebelum membuka topik berikutnya.':'Coba, periksa, lalu pelajari alasan di balik jawabannya.'}</p></header>
-    <div class="study-layout"><section class="study-main" aria-label="Latihan interaktif"><div class="study-progress"><span>${s.cleared.length} dari 10 latihan dituntaskan</span><span>${phaseTitle}</span></div><progress max="10" value="${s.cleared.length}" aria-label="Latihan dituntaskan di sesi ini"></progress>
+    <div class="mobile-coach">${byteMascot(pending?(pending.correct?'celebrate':'thinking'):'idle')}<p>${pending?pending.correct?'Mantap! Logikamu makin tajam.':'Tenang, kita coba lagi di akhir.':'Coba dulu. Aku di sini menemanimu!'}</p></div><div class="study-layout"><section class="study-main" aria-label="Latihan interaktif"><div class="study-progress"><span>${s.cleared.length} dari 10 latihan dituntaskan</span><span>${phaseTitle}</span></div><progress max="10" value="${s.cleared.length}" aria-label="Latihan dituntaskan di sesi ini"></progress>
     ${s.phase!=='lesson'?`<div class="round-banner ${s.phase==='challenge'?'challenge-banner':''}">${icon(s.phase==='challenge'?'star':'repeat')}<span>${s.phase==='challenge'?'Tantangan akhir — tunjukkan pemahamanmu.':`${s.queue.length+s.deferred.length} soal perlu diulang · putaran ${s.round-1}`}</span></div>`:''}
     <form id="answer-form" novalidate><article class="flashcard quiz-card"><div class="flashcard-top"><span class="exercise-type">${icon(ex.challenge?'star':ex.type==='order'?'layers':'book')}${escape(typeLabels[ex.type])}</span><span>Soal ${count} / 10</span></div><h2 id="question" tabindex="-1">${escape(ex.prompt)}</h2>${ex.code?codeBlock(ex.code):''}<div id="answer-controls">${answerControls(ex,draft,s.seed,pending)}</div></article>
     <div id="input-note" class="input-note" aria-live="polite"></div>
     ${pending?feedbackMarkup(ex,pending):''}
     <div class="quiz-actions"><span>${pending?pending.correct?'Satu langkah lebih paham.':'Tidak ada nyawa yang berkurang.':'Tidak perlu buru-buru. Pikirkan dulu.'}</span>${pending?`<button type="button" class="primary check-button" data-action="continue">${s.phase==='challenge' && pending.correct?'Lihat hasil':'Lanjutkan'} ${icon('arrow')}</button>`:`<button type="submit" id="check-answer" class="primary check-button" ${!isAnswerComplete(ex,draft)?'disabled':''}>Periksa jawaban ${icon('check')}</button>`}</div></form>
     ${referenceMarkup(topic,state.learned[topic.id])}</section>
-    <aside class="lesson-aside quiz-aside"><h2>Petualangan sesi ini</h2><div class="session-overview"><span>${icon('bolt')} ${s.earned} XP baru</span><span>${icon('check')} ${s.cleared.length}/10 dituntaskan</span><span>${icon('repeat')} ${s.mistakes} jawaban perlu diulang</span></div><ol class="lesson-steps"><li class="${s.phase==='lesson'?'active-step':'passed-step'}"><span>1</span><div>Latihan utama<small>Beragam cara mengasah logika</small></div></li><li class="${s.phase==='retry'?'active-step':s.phase==='challenge'?'passed-step':''}"><span>2</span><div>Ulangi yang belum tepat<small>Kesempatan tanpa batas</small></div></li><li class="${s.phase==='challenge'?'active-step':''}"><span>3</span><div>Tantangan akhir<small>Buka topik selanjutnya</small></div></li></ol><div class="learning-note"><span class="note-mark" aria-hidden="true">{ }</span><h3>Salah itu bagian dari paham.</h3><p>Baca penjelasan setiap jawaban. Soal yang belum tepat menunggumu di akhir putaran.</p></div><p class="local-note">Jawaban dan progres tersimpan otomatis. Kamu bisa melanjutkan sesi ini kapan saja.</p></aside></div>`;
+    <aside class="lesson-aside quiz-aside"><h2>Petualangan sesi ini</h2><div class="session-overview"><span>${icon('bolt')} ${s.earned} XP baru</span><span>${icon('check')} ${s.cleared.length}/10 dituntaskan</span><span>${icon('repeat')} ${s.mistakes} jawaban perlu diulang</span></div><ol class="lesson-steps"><li class="${s.phase==='lesson'?'active-step':'passed-step'}"><span>1</span><div>Latihan utama<small>Beragam cara mengasah logika</small></div></li><li class="${s.phase==='retry'?'active-step':s.phase==='challenge'?'passed-step':''}"><span>2</span><div>Ulangi yang belum tepat<small>Kesempatan tanpa batas</small></div></li><li class="${s.phase==='challenge'?'active-step':''}"><span>3</span><div>Tantangan akhir<small>Buka topik selanjutnya</small></div></li></ol><div class="learning-note">${byteMascot(pending?(pending.correct?'celebrate':'thinking'):'idle','lesson-mascot')}<h3>${pending?.correct?'Yes! Langkah yang bagus.':'Salah itu bagian dari paham.'}</h3><p>Baca penjelasan setiap jawaban. Soal yang belum tepat menunggumu di akhir putaran.</p></div><p class="local-note">Jawaban dan progres tersimpan otomatis. Kamu bisa melanjutkan sesi ini kapan saja.</p></aside></div>`;
   refreshSubmit();
 }
 function renderSummary(topic) {
   const s=session(), next=topics[topics.indexOf(topic)+1], pct=Math.round((s.attempts-s.mistakes)/Math.max(1,s.attempts)*100);
-  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="home">${icon('back')} Peta belajar</button>${rewardBar()}</div><section class="summary quiz-summary"><div class="summary-symbol">${icon('star')}</div><p class="eyebrow">Tantangan dituntaskan</p><h1 tabindex="-1">${next?'Satu topik lebih paham.':'Dari nol, sampai array.'}</h1><p>Semua latihan di <strong>${escape(topic.title)}</strong> sudah kamu jawab benar, termasuk soal yang diulang.</p><div class="session-stats"><div><span>+${s.earned}</span><small>XP baru</small></div><div><span>${pct}%</span><small>Ketepatan dari ${s.attempts} percobaan</small></div><div><span>10/10</span><small>Latihan dituntaskan</small></div></div><p class="summary-retry">${s.mistakes?`${s.mistakes} jawaban belum tepat tadi jadi kesempatan untuk mencoba lagi. Kamu berhasil menuntaskannya.`:'Seluruh jawaban tepat sejak percobaan pertama. Kerja bagus!'}</p>${stats().todayCount>=5?'<div class="goal-complete">'+icon('target')+' Target harian tercapai · '+stats().streak+' hari streak</div>':''}${next?`<div class="next-preview"><span>Langkah berikutnya</span><h2>${escape(next.title)}</h2><p>${escape(next.description)}</p></div><button class="primary" data-topic="${next.id}">Lanjut ke topik berikutnya ${icon('arrow')}</button>`:`<button class="primary" data-action="home">Lihat perjalananmu ${icon('arrow')}</button>`}<button class="text-button summary-repeat" data-topic="${topic.id}">${icon('repeat')} Mainkan topik ini lagi</button></section>`;
+  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="home">${icon('back')} Peta belajar</button>${rewardBar()}</div><section class="summary quiz-summary"><div class="summary-celebration">${confetti()}${byteMascot('celebrate')}</div><p class="eyebrow">Tantangan dituntaskan</p><h1 tabindex="-1">${next?'Satu topik lebih paham.':'Dari nol, sampai array.'}</h1><p>Semua latihan di <strong>${escape(topic.title)}</strong> sudah kamu jawab benar, termasuk soal yang diulang.</p><div class="session-stats"><div><span>+${s.earned}</span><small>XP baru</small></div><div><span>${pct}%</span><small>Ketepatan dari ${s.attempts} percobaan</small></div><div><span>10/10</span><small>Latihan dituntaskan</small></div></div><p class="summary-retry">${s.mistakes?`${s.mistakes} jawaban belum tepat tadi jadi kesempatan untuk mencoba lagi. Kamu berhasil menuntaskannya.`:'Seluruh jawaban tepat sejak percobaan pertama. Kerja bagus!'}</p>${stats().todayCount>=5?'<div class="goal-complete">'+icon('target')+' Target harian tercapai · '+stats().streak+' hari streak</div>':''}${next?`<div class="next-preview"><span>Langkah berikutnya</span><h2>${escape(next.title)}</h2><p>${escape(next.description)}</p></div><button class="primary" data-topic="${next.id}">Lanjut ke topik berikutnya ${icon('arrow')}</button>`:`<button class="primary" data-action="home">Lihat perjalananmu ${icon('arrow')}</button>`}<button class="text-button summary-repeat" data-topic="${topic.id}">${icon('repeat')} Mainkan topik ini lagi</button></section>`;
 }
 function render(focus=false) {
+  main.dataset.screen=screen;
   renderSidebar();
   if(screen==='home') renderHome();else renderLearn();
   document.title=screen==='home'?'Flash Brains — Petualangan C':`${currentTopic()?.title??'Belajar'} — Flash Brains`;
+  requestAnimationFrame(drawCourseRoute);
   if(focus) {
     const el=main.querySelector('#feedback-title')??main.querySelector('#question')??main.querySelector('h1');
     el?.focus({preventScroll:true});
@@ -113,8 +128,15 @@ function renderControls() {
   refreshSubmit();
 }
 function perform(action) {
+  if(action==='motion' && !motionMedia.matches) {
+    motionPaused=!motionPaused;
+    try {storage?.setItem('flash-brains-motion',motionPaused?'paused':'on');} catch { /* No effect on saved quiz progress. */ }
+    applyMotionPreference();renderSidebar();
+    document.querySelector('#motion-toggle')?.focus({preventScroll:true});
+    announcement.textContent=motionPaused?'Animasi dijeda.':'Animasi diaktifkan.';
+  }
   if(action==='home') {screen='home';closeMenu();render(true);window.scrollTo(0,0);}
-  if(action==='guide') {showGuide=!showGuide;render();document.querySelector('[data-action="guide"]').focus({preventScroll:true});if(showGuide)main.querySelector('.guide').scrollIntoView({block:'nearest'});}
+  if(action==='guide') {screen='home';closeMenu();showGuide=!showGuide;render();main.querySelector('.page-footer [data-action="guide"]')?.focus({preventScroll:true});if(showGuide)main.querySelector('.guide').scrollIntoView({block:'nearest'});}
   if(action==='continue' && session()?.pending) {
     const phase=session().phase;
     state=advanceSession(state);draft=undefined;persist();render(true);window.scrollTo(0,0);
@@ -167,5 +189,19 @@ document.querySelector('#menu-toggle').addEventListener('click',()=> {
   if(open) sidebar.querySelector('button')?.focus();
 });
 document.addEventListener('keydown',event=> {if(event.key==='Escape')closeMenu(true);});
-window.addEventListener('resize',()=>{if(window.innerWidth>640)closeMenu();});
+window.addEventListener('resize',()=>{if(window.innerWidth>760)closeMenu();drawCourseRoute();});
 render();
+
+function drawCourseRoute() {
+  const map=document.querySelector('#course-map'), route=document.querySelector('#course-route');
+  if(!map || !route) return;
+  const rect=map.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  const nodes=[...map.querySelectorAll('.path-node')].map(node=>{const r=node.getBoundingClientRect();return {x:r.left-rect.left+r.width/2,y:r.top-rect.top+r.height/2};});
+  if(!nodes.length) return;
+  let d=`M ${nodes[0].x} ${nodes[0].y}`;
+  for(let i=1;i<nodes.length;i++) {const p=nodes[i-1], n=nodes[i], mid=(p.y+n.y)/2;d+=` C ${p.x} ${mid}, ${n.x} ${mid}, ${n.x} ${n.y}`;}
+  route.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`);
+  route.innerHTML=`<path d="${d}" fill="none" stroke="#e4eaf1" stroke-width="10" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="2 12" stroke-linecap="round"/>`;
+}
+document.fonts?.ready.then(drawCourseRoute);

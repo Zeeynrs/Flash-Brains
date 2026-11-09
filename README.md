@@ -20,6 +20,8 @@ Lihat [petunjuk aplikasi](kartu-c/README.md) untuk struktur dan perilaku penyimp
 
 Setiap soal memberi 10 XP hanya saat pertama kali dijawab benar. Target harian adalah lima soal berbeda yang dijawab benar; latihan ulang juga dihitung untuk target. Progres versi flashcard sebelumnya dimigrasikan otomatis dengan mempertahankan akses topik yang sudah terbuka.
 
+UI berwarna dengan jalur level berkelok, tombol dengan efek tekan, dan karakter kartun orisinal **Byte** yang menemani latihan. Responsif untuk HP, tablet dan desktop; animasi dapat dijeda dan mengikuti preferensi kurangi gerakan perangkat.
+
 ## Deployment Vercel
 
 Proyek Vercel: `flash-brains`, terhubung ke repo GitHub ini. Push ke `main` memicu deployment production.

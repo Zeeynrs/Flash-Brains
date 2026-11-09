@@ -1,8 +1,20 @@
 import { correctAnswerText, shuffled } from './quiz-engine.js';
+import { byteMascot, confetti } from './mascot.js';
 
 export const escape = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function icon(name) {
   const paths={
+    home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
+    pause:'<path d="M8 5v14M16 5v14" stroke-width="4"/>',
+    play:'<path d="m8 4 12 8-12 8Z"/>',
+    code:'<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/>',
+    gem:'<path d="m7 3-5 6 10 13L22 9l-5-6Zm-5 6h20M7 3l5 19 5-19"/>',
+    terminal:'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m6 9 3 3-3 3m6 0h5"/>',
+    branch:'<circle cx="6" cy="5" r="3"/><circle cx="18" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><path d="M6 8v8m0-4h5q7 0 7-4"/>',
+    grid:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+    flag:'<path d="M5 22V3m0 0q3-2 7 0t7 0v10q-3 2-7 0t-7 0"/>',
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 0 1 6 1c0 2-3 2-3 4m0 4h.01"/>',
+    trophy:'<path d="M7 3h10v6q0 6-5 6T7 9ZM7 6H3v3q0 4 5 4m9-7h4v3q0 4-5 4M12 15v5m-5 1h10"/>',
     arrow:'<path d="M4 12h15m-6-6 6 6-6 6"/>',back:'<path d="M20 12H5m6-6-6 6 6 6"/>',
     check:'<path d="m5 12 4 4L19 6"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',
     lock:'<rect x="6" y="10" width="12" height="10" rx="2"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/>',
@@ -39,7 +51,7 @@ export function answerControls(ex,input,seed,pending) {
 }
 export function feedbackMarkup(ex,pending) {
   if(!pending) return '';
-  return `<section id="feedback" class="quiz-feedback ${pending.correct?'feedback-correct':'feedback-retry'}" aria-labelledby="feedback-title"><div class="feedback-heading"><span class="feedback-icon">${icon(pending.correct?'check':'repeat')}</span><h2 id="feedback-title" tabindex="-1">${pending.correct?'Tepat sekali!':'Belum tepat. Kita ulangi nanti.'}</h2>${pending.xp?`<span class="xp-earned">+${pending.xp} XP</span>`:''}</div>${!pending.correct?`<p class="answer-key-label">Jawaban yang tepat</p><pre class="answer-key">${escape(correctAnswerText(ex))}</pre>`:''}<p>${escape(ex.explanation)}</p>${!pending.correct?'<p class="retry-note">Soal ini masuk putaran ulang setelah soal lainnya selesai.</p>':!pending.xp?'<p class="retry-note">Latihan ulang dihitung untuk target harian. XP soal ini sudah pernah kamu dapatkan.</p>':''}</section>`;
+  return `<section id="feedback" class="quiz-feedback ${pending.correct?'feedback-correct':'feedback-retry'}" aria-labelledby="feedback-title">${pending.correct?confetti():''}<div class="feedback-illustration">${byteMascot(pending.correct?'celebrate':'thinking')}</div><div class="feedback-copy"><div class="feedback-heading"><span class="feedback-icon">${icon(pending.correct?'check':'repeat')}</span><h2 id="feedback-title" tabindex="-1">${pending.correct?'Tepat sekali!':'Belum tepat. Kita ulangi nanti.'}</h2>${pending.xp?`<span class="xp-earned">+${pending.xp} XP</span>`:''}</div>${!pending.correct?`<p class="answer-key-label">Jawaban yang tepat</p><pre class="answer-key">${escape(correctAnswerText(ex))}</pre>`:''}<p>${escape(ex.explanation)}</p>${!pending.correct?'<p class="retry-note">Soal ini masuk putaran ulang setelah soal lainnya selesai.</p>':!pending.xp?'<p class="retry-note">Latihan ulang dihitung untuk target harian. XP soal ini sudah pernah kamu dapatkan.</p>':''}</div></section>`;
 }
 export function referenceMarkup(topic,learned=[]) {
   return `<details class="reference-panel"><summary>${icon('book')} Catatan materi: ${escape(topic.title)} <span>5 kartu referensi</span></summary><div class="reference-intro">Baca saat perlu bantuan. Catatan ini tidak menambah XP.${learned.length?` ${learned.length}/5 kartu pernah kamu pelajari di versi awal.`:''}</div>${topic.cards.map(c=>`<article class="reference-card"><h3>${escape(c.question)}</h3>${c.code?codeBlock(c.code):''}<p class="reference-answer">${escape(c.answer)}</p><p>${escape(c.explanation)}</p></article>`).join('')}</details>`;
