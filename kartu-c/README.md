@@ -44,8 +44,14 @@ Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengo
 - `dist/state.js`: transisi sesi, putaran ulang, migrasi progres, XP, target dan streak.
 - `dist/quiz-view.js`: kontrol jawaban, feedback dan catatan referensi.
 - `dist/mascot.js`: karakter SVG Byte, logo dan dekorasi perayaan orisinal.
+- `dist/courses.js`: registry metadata pelajaran yang tersedia dan pencarian katalog.
+- `dist/navigation.js`: parser dan pembuat hash route katalog/pelajaran/topik.
+- `dist/sidebar.js`: preferensi sidebar desktop dan drawer mobile yang mendukung keyboard.
+- `dist/catalog-view.js`: beranda umum, kartu pelajaran, pencarian dan sesi lanjutan.
 - `dist/app.js`: antarmuka dan penyimpanan browser.
-- `dist/styles.css` dan `dist/quiz.css`: tampilan responsif.
+- `dist/styles.css`, `dist/quiz.css` dan `dist/catalog.css`: tampilan responsif.
 - `tests/`: pengujian penilaian, alur belajar, migrasi, reward dan ketepatan contoh C.
 
-Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dekoratif dapat dijeda melalui tombol **Animasi aktif** di sidebar atau menu Topik pada HP; pilihan diingat di browser. Preferensi perangkat untuk mengurangi gerakan selalu dihormati.
+Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dekoratif dapat dijeda melalui tombol **Animasi aktif** di sidebar atau menu pada HP; pilihan diingat di browser. Preferensi perangkat untuk mengurangi gerakan selalu dihormati.
+
+Beranda `#/` menampilkan pelajaran yang benar-benar tersedia. C mempunyai halaman sendiri di `#/pelajaran/c`, dengan topik di `#/pelajaran/c/topik/<id>`. Pelajaran yang belum dibuka atau belum tersedia tidak dapat diakses melalui deep link. Menutup sidebar desktop memberi lebih banyak ruang baca; preferensinya terpisah dari data kuis. Drawer HP menutup saat navigasi tanpa mengubah preferensi desktop.

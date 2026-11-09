@@ -4,6 +4,8 @@ import { byteMascot, confetti } from './mascot.js';
 export const escape = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function icon(name) {
   const paths={
+    menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+    search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',
     home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
     pause:'<path d="M8 5v14M16 5v14" stroke-width="4"/>',
     play:'<path d="m8 4 12 8-12 8Z"/>',

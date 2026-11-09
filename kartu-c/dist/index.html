@@ -4,23 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9fcf7">
-  <meta name="description" content="Petualangan belajar C lewat 80 latihan interaktif. Susun kode, tebak output, pecahkan teka-teki, dan kumpulkan XP dari dasar sampai array.">
-  <title>Flash Brains — Petualangan belajar C</title>
+  <meta name="description" content="Temukan pelajaran, pecahkan teka-teki, dan belajar lewat tantangan kecil bersama Flash Brains. Mulai petualanganmu dari pemrograman C.">
+  <title>Flash Brains — Pilih pelajaranmu</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./quiz.css">
+  <link rel="stylesheet" href="./catalog.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
   <a class="skip" href="#main">Lewati navigasi</a>
-  <header class="mobile-header"><a href="#" class="brand" aria-label="Flash Brains, beranda"><span class="brand-mark" aria-hidden="true">{c}</span> Flash Brains</a><button id="menu-toggle" aria-controls="sidebar" aria-expanded="false">Topik <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></header>
-  <aside id="sidebar" class="sidebar" aria-label="Navigasi belajar"></aside>
+  <header class="mobile-header app-header"><button id="menu-toggle" class="header-menu-toggle" type="button" aria-label="Buka sidebar navigasi" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg><span>Menu</span></button><a href="#/" class="brand" aria-label="Flash Brains, beranda"><span class="brand-mark" aria-hidden="true">{c}</span> Flash Brains</a><span id="header-context" class="header-context">Beranda</span></header>
+  <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu navigasi" tabindex="-1" hidden></button>
+  <aside id="sidebar" class="sidebar" aria-label="Menu navigasi"></aside>
   <main id="main" tabindex="-1"></main>
   <div id="storage-notice" class="storage-notice" role="status" hidden>Progres belum bisa disimpan di browser ini. Kamu tetap bisa belajar, tetapi progres akan hilang setelah halaman ditutup.</div>
   <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
-  <noscript><p class="noscript">Aktifkan JavaScript untuk membuka kartu dan menyimpan progres belajar.</p></noscript>
+  <noscript><p class="noscript">Aktifkan JavaScript untuk menjelajahi pelajaran dan melanjutkan latihan.</p></noscript>
 </body>
 </html>

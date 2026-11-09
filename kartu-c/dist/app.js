@@ -4,11 +4,15 @@ import { isAnswerComplete, typeLabels } from './quiz-engine.js';
 import { isUnlocked, topicComplete, startTopic, setDraft, submitAnswer, advanceSession, currentSession, readProgress, saveProgress, learningStats } from './state.js';
 import { escape, icon, codeBlock, answerControls, feedbackMarkup, referenceMarkup } from './quiz-view.js';
 import { brandMark, byteMascot, confetti } from './mascot.js';
+import {courses,courseById,searchCourses} from './courses.js';
+import {parseRoute,courseRoute,lessonRoute} from './navigation.js';
+import {catalogMarkup,courseCardsMarkup} from './catalog-view.js';
+import {createSidebar} from './sidebar.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
 const loaded=readProgress(storage);
-let state=loaded.state, screen='home', draft, showGuide=false;
+let state=loaded.state, screen='home', draft, showGuide=false, courseQuery='';
 const main=document.querySelector('#main'), sidebar=document.querySelector('#sidebar');
 const notice=document.querySelector('#storage-notice'), announcement=document.querySelector('#announcement');
 notice.hidden=loaded.available;
@@ -32,26 +36,31 @@ function applyMotionPreference() {document.documentElement.dataset.motion=motion
 applyMotionPreference();
 motionMedia.addEventListener('change',()=>{applyMotionPreference();renderSidebar();});
 document.querySelector('.mobile-header .brand-mark').innerHTML=brandMark();
+const shell=createSidebar({sidebar,main,toggle:document.querySelector('#menu-toggle'),backdrop:document.querySelector('#sidebar-backdrop'),storage,onLayout:drawCourseRoute});
 function nextTopic() {
   return topics.find(t=>isUnlocked(state,t.id) && !topicComplete(state,t.id)) ?? topics.find(t=>mastered(t)<10 && isUnlocked(state,t.id)) ?? topics[0];
 }
-function closeMenu(restoreFocus=false) {
-  const wasOpen=sidebar.classList.contains('mobile-open');
-  sidebar.classList.remove('mobile-open');main.inert=false;
-  document.querySelector('#menu-toggle').setAttribute('aria-expanded','false');
-  if(wasOpen && restoreFocus) document.querySelector('#menu-toggle').focus();
+function closeMenu(restoreFocus=false) {shell.close(restoreFocus);}
+function progressByCourse() {return {c:{solvedCount:stats().solvedCount}};}
+function renderCatalog() {
+  const active=session();
+  const continueTopic=active && active.phase!=='done'?{id:active.topicId,title:currentTopic().title}:null;
+  main.innerHTML=catalogMarkup({stats:stats(),rewards:rewardBar(),progressByCourse:progressByCourse(),continueTopic,query:courseQuery,showGuide});
 }
 function renderSidebar() {
   const paused=motionPaused||motionMedia.matches;
-  sidebar.innerHTML=`<a href="#" class="brand desktop-brand" aria-label="Flash Brains, beranda"><span class="brand-mark">${brandMark()}</span><span>flash<span class="brand-word">brains</span></span></a><p class="sidebar-subtitle">Otak aktif. Belajar asyik.</p>
-    <button class="nav-home ${screen==='home'?'selected':''}" data-action="home">${icon('home')}<span>Belajar</span><span class="nav-current-dot" aria-hidden="true"></span></button>
-    <p class="nav-label">Petualangan bahasa C</p><nav aria-label="Daftar topik">${topics.map((t,i)=>`<button class="nav-topic ${screen==='learn' && state.activeTopicId===t.id?'selected':''}" data-topic="${t.id}" ${!isUnlocked(state,t.id)?'disabled':''} ${screen==='learn' && state.activeTopicId===t.id?'aria-current="step"':''}><span class="nav-number ${topicComplete(state,t.id)?'done':''}">${topicComplete(state,t.id)?icon('check'):String(i+1).padStart(2,'0')}</span><span>${escape(t.title)}</span>${!isUnlocked(state,t.id)?icon('lock'):''}<span class="sr-only">${!isUnlocked(state,t.id)?', terkunci':topicComplete(state,t.id)?', selesai':', terbuka'}</span></button>`).join('')}</nav>
-    <button class="sidebar-help text-button" data-action="guide">${icon('help')} Cara bermain</button>
+  const inCourse=screen!=='home';
+  sidebar.innerHTML=`<div class="sidebar-heading"><span>Jelajahi</span><button type="button" class="sidebar-close" data-action="close-sidebar" aria-label="Tutup sidebar navigasi">${icon('close')}</button></div>
+    <button class="nav-home ${screen==='home'?'selected':''}" data-action="home" ${screen==='home'?'aria-current="page"':''}>${icon('home')}<span>Beranda</span>${screen==='home'?'<span class="nav-current-dot" aria-hidden="true"></span>':''}</button>
+    <p class="nav-label">Pelajaranmu</p><nav aria-label="Pilihan pelajaran">${courses.filter(c=>c.status==='available').map(c=>`<a class="sidebar-course ${inCourse?'selected':''}" href="${courseRoute(c.id)}" data-course="${c.id}" ${inCourse?'aria-current="page"':''}><span class="sidebar-course-symbol" aria-hidden="true">${escape(c.symbol)}</span><span>${escape(c.title)}</span>${icon('arrow')}</a>`).join('')}</nav>
+    ${inCourse?`<p class="nav-label">Topik pemrograman C</p><nav aria-label="Daftar topik C">${topics.map((t,i)=>`<button class="nav-topic ${screen==='learn' && state.activeTopicId===t.id?'selected':''}" data-topic="${t.id}" ${!isUnlocked(state,t.id)?'disabled':''} ${screen==='learn' && state.activeTopicId===t.id?'aria-current="step"':''}><span class="nav-number ${topicComplete(state,t.id)?'done':''}">${topicComplete(state,t.id)?icon('check'):String(i+1).padStart(2,'0')}</span><span>${escape(t.title)}</span>${!isUnlocked(state,t.id)?icon('lock'):''}<span class="sr-only">${!isUnlocked(state,t.id)?', terkunci':topicComplete(state,t.id)?', selesai':', terbuka'}</span></button>`).join('')}</nav>`:`<div class="sidebar-catalog-note">${icon('layers')}<p>Semua pelajaranmu ada di satu tempat. Pilih yang bikin kamu penasaran.</p></div>`}
+    <button class="sidebar-help text-button" data-action="guide">${icon('help')} Cara belajar</button>
     <button id="motion-toggle" class="motion-toggle text-button" data-action="motion" aria-pressed="${paused}" aria-label="${motionMedia.matches?'Animasi mengikuti preferensi kurangi gerakan perangkat':paused?'Aktifkan animasi':'Jeda animasi'}" ${motionMedia.matches?'disabled':''}>${icon(paused?'play':'pause')}<span>${motionMedia.matches?'Gerakan dikurangi':paused?'Animasi dijeda':'Animasi aktif'}</span></button>
-    <div class="sidebar-bottom"><div class="mini-progress"><span>Makin jago!</span><strong>${stats().solvedCount}/80</strong></div><progress max="80" value="${stats().solvedCount}" aria-label="Total latihan dikuasai"></progress><p>Pelan-pelan juga sampai.<br>Yang penting, terus coba.</p><span class="local-label">${notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia'}</span></div>`;
+    <div class="sidebar-bottom"><div class="mini-progress"><span>Latihanmu</span><strong>${stats().solvedCount}/80</strong></div><progress max="80" value="${stats().solvedCount}" aria-label="Total latihan dikuasai"></progress><p>Pelan-pelan juga sampai.<br>Yang penting, terus coba.</p><span class="local-label">${notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia'}</span></div>`;
+  shell.sync();
 }
 const rewardBar=()=>`<div class="reward-bar" aria-label="Pencapaian belajar"><span class="reward-pill xp-pill" title="XP yang sudah kamu kumpulkan">${icon('gem')}<strong>${stats().xp}</strong><span>XP</span></span><span class="reward-pill streak-pill" title="Hari berturut-turut mencapai target">${icon('fire')}<strong>${stats().streak}</strong><span>hari</span></span></div>`;
-function renderHome() {
+function renderCourse() {
   const active=session() && session().phase!=='done'?currentTopic():nextTopic();
   const finished=topics.filter(t=>topicComplete(state,t.id)).length;
   const allDone=stats().solvedCount===80, continuing=state.sessions[active.id] && state.sessions[active.id].phase!=='done';
@@ -76,12 +85,12 @@ function renderHome() {
 }
 function renderLearn() {
   const s=session(), topic=currentTopic();
-  if(!s || !topic) {screen='home';renderHome();return;}
+  if(!s || !topic) {screen='course';renderCourse();return;}
   if(s.phase==='done') {renderSummary(topic);return;}
   const ex=currentExercise(), pending=s.pending;
   const phaseTitle=s.phase==='retry'?'Putaran ulang':s.phase==='challenge'?'Tantangan akhir':'Latihan utama';
   const count=exercisesForTopic(topic.id).findIndex(e=>e.id===ex.id)+1;
-  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="home">${icon('back')} Peta belajar</button>${rewardBar()}</div>
+  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="course">${icon('back')} Peta belajar</button>${rewardBar()}</div>
     <header class="lesson-heading"><span class="lesson-unit">Unit ${String(topics.indexOf(topic)+1).padStart(2,'0')} / 08</span><h1 tabindex="-1">${escape(topic.title)}</h1><p>${s.phase==='retry'?'Kita coba lagi. Sekarang kamu sudah tahu petunjuknya.':s.phase==='challenge'?'Langkah terakhir sebelum membuka topik berikutnya.':'Coba, periksa, lalu pelajari alasan di balik jawabannya.'}</p></header>
     <div class="mobile-coach">${byteMascot(pending?(pending.correct?'celebrate':'thinking'):'idle')}<p>${pending?pending.correct?'Mantap! Logikamu makin tajam.':'Tenang, kita coba lagi di akhir.':'Coba dulu. Aku di sini menemanimu!'}</p></div><div class="study-layout"><section class="study-main" aria-label="Latihan interaktif"><div class="study-progress"><span>${s.cleared.length} dari 10 latihan dituntaskan</span><span>${phaseTitle}</span></div><progress max="10" value="${s.cleared.length}" aria-label="Latihan dituntaskan di sesi ini"></progress>
     ${s.phase!=='lesson'?`<div class="round-banner ${s.phase==='challenge'?'challenge-banner':''}">${icon(s.phase==='challenge'?'star':'repeat')}<span>${s.phase==='challenge'?'Tantangan akhir — tunjukkan pemahamanmu.':`${s.queue.length+s.deferred.length} soal perlu diulang · putaran ${s.round-1}`}</span></div>`:''}
@@ -95,22 +104,46 @@ function renderLearn() {
 }
 function renderSummary(topic) {
   const s=session(), next=topics[topics.indexOf(topic)+1], pct=Math.round((s.attempts-s.mistakes)/Math.max(1,s.attempts)*100);
-  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="home">${icon('back')} Peta belajar</button>${rewardBar()}</div><section class="summary quiz-summary"><div class="summary-celebration">${confetti()}${byteMascot('celebrate')}</div><p class="eyebrow">Tantangan dituntaskan</p><h1 tabindex="-1">${next?'Satu topik lebih paham.':'Dari nol, sampai array.'}</h1><p>Semua latihan di <strong>${escape(topic.title)}</strong> sudah kamu jawab benar, termasuk soal yang diulang.</p><div class="session-stats"><div><span>+${s.earned}</span><small>XP baru</small></div><div><span>${pct}%</span><small>Ketepatan dari ${s.attempts} percobaan</small></div><div><span>10/10</span><small>Latihan dituntaskan</small></div></div><p class="summary-retry">${s.mistakes?`${s.mistakes} jawaban belum tepat tadi jadi kesempatan untuk mencoba lagi. Kamu berhasil menuntaskannya.`:'Seluruh jawaban tepat sejak percobaan pertama. Kerja bagus!'}</p>${stats().todayCount>=5?'<div class="goal-complete">'+icon('target')+' Target harian tercapai · '+stats().streak+' hari streak</div>':''}${next?`<div class="next-preview"><span>Langkah berikutnya</span><h2>${escape(next.title)}</h2><p>${escape(next.description)}</p></div><button class="primary" data-topic="${next.id}">Lanjut ke topik berikutnya ${icon('arrow')}</button>`:`<button class="primary" data-action="home">Lihat perjalananmu ${icon('arrow')}</button>`}<button class="text-button summary-repeat" data-topic="${topic.id}">${icon('repeat')} Mainkan topik ini lagi</button></section>`;
+  main.innerHTML=`<div class="page-top"><button class="text-button back-link" data-action="course">${icon('back')} Peta belajar</button>${rewardBar()}</div><section class="summary quiz-summary"><div class="summary-celebration">${confetti()}${byteMascot('celebrate')}</div><p class="eyebrow">Tantangan dituntaskan</p><h1 tabindex="-1">${next?'Satu topik lebih paham.':'Dari nol, sampai array.'}</h1><p>Semua latihan di <strong>${escape(topic.title)}</strong> sudah kamu jawab benar, termasuk soal yang diulang.</p><div class="session-stats"><div><span>+${s.earned}</span><small>XP baru</small></div><div><span>${pct}%</span><small>Ketepatan dari ${s.attempts} percobaan</small></div><div><span>10/10</span><small>Latihan dituntaskan</small></div></div><p class="summary-retry">${s.mistakes?`${s.mistakes} jawaban belum tepat tadi jadi kesempatan untuk mencoba lagi. Kamu berhasil menuntaskannya.`:'Seluruh jawaban tepat sejak percobaan pertama. Kerja bagus!'}</p>${stats().todayCount>=5?'<div class="goal-complete">'+icon('target')+' Target harian tercapai · '+stats().streak+' hari streak</div>':''}${next?`<div class="next-preview"><span>Langkah berikutnya</span><h2>${escape(next.title)}</h2><p>${escape(next.description)}</p></div><button class="primary" data-topic="${next.id}">Lanjut ke topik berikutnya ${icon('arrow')}</button>`:`<button class="primary" data-action="course">Lihat perjalananmu ${icon('arrow')}</button>`}<button class="text-button summary-repeat" data-topic="${topic.id}">${icon('repeat')} Mainkan topik ini lagi</button></section>`;
 }
 function render(focus=false) {
   main.dataset.screen=screen;
   renderSidebar();
-  if(screen==='home') renderHome();else renderLearn();
-  document.title=screen==='home'?'Flash Brains — Petualangan C':`${currentTopic()?.title??'Belajar'} — Flash Brains`;
-  requestAnimationFrame(drawCourseRoute);
-  if(focus) {
-    const el=main.querySelector('#feedback-title')??main.querySelector('#question')??main.querySelector('h1');
-    el?.focus({preventScroll:true});
-  }
+  if(screen==='home') renderCatalog();else if(screen==='course') renderCourse();else renderLearn();
+  document.title=screen==='home'?'Flash Brains — Pilih pelajaranmu':screen==='course'?'Pemrograman C — Flash Brains':`${currentTopic()?.title??'Belajar'} — Flash Brains`;
+  document.querySelector('#header-context').textContent=screen==='home'?'Beranda':screen==='course'?'Pelajaran / Pemrograman C':`Pemrograman C / ${currentTopic()?.title??'Latihan'}`;
+  shell.sync();requestAnimationFrame(drawCourseRoute);
+  if(focus) (main.querySelector('#feedback-title')??main.querySelector('#question')??main.querySelector('h1'))?.focus({preventScroll:true});
+}
+function setRoute(hash) {
+  if(location.hash===hash) applyRoute(true);
+  else location.hash=hash;
+}
+function openCourse(id) {
+  if(!courseById(id) || courseById(id).status!=='available') return;
+  closeMenu();setRoute(courseRoute(id));
+}
+function applyRoute(focus=false) {
+  const route=parseRoute(location.hash);
+  const course=route.courseId?courseById(route.courseId):null;
+  showGuide=false;
+  if(route.screen!=='home' && (!course || course.engine!=='c-quiz')) {
+    history.replaceState(null,'','#/');screen='home';
+  } else if(route.screen==='learn') {
+    if(!topics.some(t=>t.id===route.topicId) || !isUnlocked(state,route.topicId)) {
+      history.replaceState(null,'',courseRoute('c'));screen='course';
+      announcement.textContent='Topik belum tersedia. Selesaikan topik sebelumnya terlebih dahulu.';
+    } else {
+      state=state.sessions[route.topicId]?{...state,activeTopicId:route.topicId}:startTopic(state,route.topicId);
+      draft=session()?.pending?.input??session()?.draft;persist();screen='learn';
+    }
+  } else screen=route.screen;
+  closeMenu();render(focus);window.scrollTo(0,0);
 }
 function navigateTopic(id) {
   if(!isUnlocked(state,id)) return;
-  state=startTopic(state,id);draft=session()?.pending?.input??session()?.draft;screen='learn';persist();closeMenu();render(true);window.scrollTo(0,0);
+  state=startTopic(state,id);draft=session()?.pending?.input??session()?.draft;persist();closeMenu();
+  setRoute(lessonRoute('c',id));
 }
 function refreshSubmit() {
   const button=document.querySelector('#check-answer');
@@ -135,8 +168,11 @@ function perform(action) {
     document.querySelector('#motion-toggle')?.focus({preventScroll:true});
     announcement.textContent=motionPaused?'Animasi dijeda.':'Animasi diaktifkan.';
   }
-  if(action==='home') {screen='home';closeMenu();render(true);window.scrollTo(0,0);}
-  if(action==='guide') {screen='home';closeMenu();showGuide=!showGuide;render();main.querySelector('.page-footer [data-action="guide"]')?.focus({preventScroll:true});if(showGuide)main.querySelector('.guide').scrollIntoView({block:'nearest'});}
+  if(action==='home') {closeMenu();setRoute('#/');}
+  if(action==='course') {openCourse('c');}
+  if(action==='close-sidebar') {shell.hide();}
+  if(action==='browse-courses') {document.querySelector('#catalog-courses')?.scrollIntoView({block:'start'});document.querySelector('#course-search')?.focus({preventScroll:true});}
+  if(action==='guide') {if(screen==='learn'){history.pushState(null,'',courseRoute('c'));screen='course';showGuide=false;}closeMenu();showGuide=!showGuide;render();main.querySelector('.page-footer [data-action="guide"]')?.focus({preventScroll:true});if(showGuide)main.querySelector('.guide').scrollIntoView({block:'nearest'});}
   if(action==='continue' && session()?.pending) {
     const phase=session().phase;
     state=advanceSession(state);draft=undefined;persist();render(true);window.scrollTo(0,0);
@@ -145,11 +181,16 @@ function perform(action) {
   }
 }
 document.addEventListener('click',event=> {
+  if(event.target.closest('.skip')) {
+    event.preventDefault();closeMenu();main.focus({preventScroll:true});main.scrollIntoView({block:'start'});return;
+  }
+  const course=event.target.closest('[data-course]');
+  if(course && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){event.preventDefault();openCourse(course.dataset.course);}
   const topic=event.target.closest('[data-topic]');
   if(topic && !topic.disabled) navigateTopic(topic.dataset.topic);
   const action=event.target.closest('[data-action]');
   if(action) perform(action.dataset.action);
-  if(event.target.closest('a.brand')) {event.preventDefault();perform('home');}
+  if(event.target.closest('a.brand') && !event.ctrlKey && !event.metaKey && !event.shiftKey) {event.preventDefault();perform('home');}
   const add=event.target.closest('[data-token-add]'), remove=event.target.closest('[data-token-remove]');
   if((add||remove) && screen==='learn' && currentExercise()?.type==='order' && !session().pending) {
     const ex=currentExercise();
@@ -171,6 +212,7 @@ document.addEventListener('submit',event=> {
   document.querySelector('#feedback')?.scrollIntoView({block:'nearest',behavior:'instant'});
 });
 document.addEventListener('input',event=> {
+  if(event.target.id==='course-search'){courseQuery=event.target.value;document.querySelector('#course-results').innerHTML=courseCardsMarkup(courseQuery,progressByCourse());document.querySelector('#course-result-count').textContent=`${searchCourses(courseQuery).length} pelajaran ditemukan`;return;}
   if(event.target.id==='fill-answer' && !session()?.pending) {draft=event.target.value;persistDraft();refreshSubmit();}
 });
 document.addEventListener('change',event=> {
@@ -183,14 +225,10 @@ document.addEventListener('change',event=> {
     if(preview) preview.textContent=selected?selected.right:'';
   }
 });
-document.querySelector('#menu-toggle').addEventListener('click',()=> {
-  const open=sidebar.classList.toggle('mobile-open');main.inert=open;
-  document.querySelector('#menu-toggle').setAttribute('aria-expanded',String(open));
-  if(open) sidebar.querySelector('button')?.focus();
-});
-document.addEventListener('keydown',event=> {if(event.key==='Escape')closeMenu(true);});
-window.addEventListener('resize',()=>{if(window.innerWidth>760)closeMenu();drawCourseRoute();});
-render();
+window.addEventListener('hashchange',()=>applyRoute(true));
+window.addEventListener('resize',drawCourseRoute);
+if(!location.hash) history.replaceState(null,'','#/');
+applyRoute(false);
 
 function drawCourseRoute() {
   const map=document.querySelector('#course-map'), route=document.querySelector('#course-route');
