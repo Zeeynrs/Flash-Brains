@@ -8,6 +8,7 @@ import {parseRoute,courseRoute,lessonRoute} from './navigation.js';
 import {catalogMarkup,courseCardsMarkup,missionMarkup} from './catalog-view.js';
 import {createSidebar} from './sidebar.js';
 import {burst,rain,countUp,clearEffects} from './effects.js';
+import {mountMatching} from './matching.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
@@ -18,6 +19,7 @@ let activeCourseId='c',lastCourseId;
 try {lastCourseId=storage?.getItem('flash-brains-last-course');} catch { /* Resume still works for the current visit. */ }
 let content=courseContentById(activeCourseId),topics=content.topics,engine=content.learning,state=states[activeCourseId];
 let screen='home',draft,showGuide=false,courseQuery='';
+let disposeMatching=()=>{};
 // Names the moment being rendered (correct, wrong, next, finish) so its animation plays once, not on reload.
 let fx=null;
 const activeCourse=()=>courseById(activeCourseId);
@@ -136,12 +138,14 @@ function renderLearn() {
     <div class="quiz-actions">${pending?`<button type="button" class="primary check-button" data-action="continue">${s.phase==='challenge' && pending.correct?'Lihat hasil':'Lanjutkan'} ${icon('arrow')}</button>`:`<button type="submit" id="check-answer" class="primary check-button" ${!isAnswerComplete(ex,draft)?'disabled':''}>Periksa jawaban ${icon('check')}</button>`}</div></form>
     ${referenceMarkup(topic,state.learned[topic.id])}</div>`;
   refreshSubmit();
+  setupMatching();
 }
 function renderSummary(topic) {
   const s=session(), next=topics[topics.indexOf(topic)+1], pct=Math.round((s.attempts-s.mistakes)/Math.max(1,s.attempts)*100);
   main.innerHTML=`<div class="page"><div class="page-top"><button class="text-button back-link" data-action="course">${icon('back')} Peta belajar</button>${rewardBar()}</div><section class="summary"><div class="summary-celebration"><span class="summary-rays" aria-hidden="true"></span>${byteMascot('celebrate')}</div><p class="eyebrow">Topik tuntas</p><h1 tabindex="-1">${next?'Satu topik lebih paham.':escape(activeCourse().finishLabel)}</h1><p class="summary-lead">Semua latihan di <strong>${escape(topic.title)}</strong> sudah kamu jawab benar.</p><div class="session-stats"><div><span data-count="${s.earned}" data-prefix="+">+${s.earned}</span><small>XP baru</small></div><div><span data-count="${pct}" data-suffix="%" data-delay="150">${pct}%</span><small>Ketepatan</small></div><div><span data-count="10" data-suffix="/10" data-delay="300">10/10</span><small>Latihan</small></div></div>${stats().todayCount>=5?'<div class="goal-complete">'+icon('target')+' Misi harian tercapai · '+stats().streak+' hari streak</div>':''}${next?`<button class="primary" data-topic="${next.id}">Lanjut: ${escape(next.title)} ${icon('arrow')}</button>`:`<button class="primary" data-action="course">Lihat perjalananmu ${icon('arrow')}</button>`}<button class="text-button summary-repeat" data-topic="${topic.id}">${icon('repeat')} Mainkan topik ini lagi</button></section></div>`;
 }
 function render(focus=false) {
+  disposeMatching();disposeMatching=()=>{};
   main.dataset.screen=screen;
   main.dataset.course=screen==='home'?'':activeCourseId;
   main.dataset.fx=fx??'';fx=null;
@@ -196,9 +200,17 @@ function refreshSubmit() {
   }
 }
 function renderControls() {
+  disposeMatching();disposeMatching=()=>{};
   const ex=currentExercise(), s=session();
   document.querySelector('#answer-controls').innerHTML=answerControls(ex,draft,s.seed,s.pending);
   refreshSubmit();
+  setupMatching();
+}
+function setupMatching() {
+  disposeMatching=mountMatching(main.querySelector('.match-control'),{
+    input:draft,motionPaused,
+    onChange:input=>{draft=input;persistDraft();refreshSubmit();}
+  });
 }
 function perform(action) {
   if(action==='motion') {
@@ -262,12 +274,6 @@ document.addEventListener('input',event=> {
 document.addEventListener('change',event=> {
   if(screen!=='learn' || session()?.pending) return;
   if(event.target.name==='choice') {draft=event.target.value;persistDraft();refreshSubmit();}
-  if(event.target.matches('[data-match]')) {
-    draft={...(draft??{}),[event.target.dataset.match]:event.target.value};persistDraft();refreshSubmit();
-    const preview=event.target.closest('.match-row').querySelector('.match-preview');
-    const selected=currentExercise().pairs.find(p=>p.id===event.target.value);
-    if(preview) preview.textContent=selected?selected.right:'';
-  }
 });
 window.addEventListener('hashchange',()=>applyRoute(true));
 window.addEventListener('resize',drawCourseRoute);

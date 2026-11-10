@@ -58,14 +58,30 @@
 .code-token:disabled {color:#7a8797;background:#f0f4f7;border-color:#e4eaf0;box-shadow:0 2px 0 #e9edf2;cursor:default;opacity:.7}
 .code-token:not(:disabled):hover {border-color:#9dc9e9;background:#f0f8fe;transform:translateY(-2px);box-shadow:0 5px 0 #d4e6f3}
 .code-token:not(:disabled):active {transform:translateY(2px);box-shadow:0 1px 0 #d4e6f3}
-.match-control legend {float:left;width:100%;font-size:15px;color:var(--muted);margin-bottom:6px}
-.match-row {clear:both;display:grid;grid-template-columns:minmax(0,.8fr) 15px minmax(0,1.3fr);gap:6px 12px;align-items:center;margin-top:14px}
-.match-row label {font-size:17px;font-weight:800;line-height:1.6;overflow-wrap:anywhere;min-width:0}
-.match-row>span {color:#9b83c1;font-size:20px;font-weight:900}
-.match-row select {font:700 16px/1.5 'Nunito',system-ui,sans-serif;color:var(--text);background:#faf7ff;border:2px solid #e0d5f2;border-radius:12px;min-height:52px;padding:12px 27px 12px 12px;width:100%;min-width:0;text-overflow:ellipsis}
-.match-row select:disabled {opacity:1;-webkit-text-fill-color:var(--text)}
-.match-preview {grid-column:3;font-size:15px;color:#7c659f;overflow-wrap:anywhere}
-.match-preview:empty {display:none}
+.match-control legend {font-size:16px;font-weight:800;color:var(--text);padding:0;max-width:100%}
+.match-help {font-size:14px;color:var(--muted);margin:5px 0 22px}
+.match-board {position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(56px,12vw,120px);isolation:isolate}
+.match-column {display:grid;grid-auto-rows:1fr;gap:22px;min-width:0}
+.match-node {position:relative;min-width:0;min-height:72px;padding:16px 14px;border:2px solid #dfe5ed;background:#fff;text-align:left;font-size:16px;font-weight:800;line-height:1.5;overflow-wrap:anywhere;transition:background .15s,border-color .15s,box-shadow .15s;z-index:1}
+.match-source {border-radius:8px;touch-action:none;cursor:grab}
+.match-target {border-radius:22px;background:#fcfaff;border-color:#e2d8f1}
+.match-node:not(:disabled):hover {background:#f8f5fd;border-color:#b49ad6}
+.match-node.is-active,.match-node.is-connected {border-color:var(--rope-color);background:color-mix(in srgb,var(--rope-color) 7%,white)}
+.match-node.is-active {box-shadow:0 0 0 3px color-mix(in srgb,var(--rope-color) 14%,transparent)}
+.match-node.is-over {border-color:#8b69c6;background:#f1e9fc;box-shadow:0 0 0 4px #8b69c61c}
+.match-port {position:absolute;top:50%;width:14px;height:14px;border:3px solid var(--rope-color,#bba6d6);background:white;border-radius:50%;transform:translateY(-50%)}
+.match-source .match-port {right:-9px}
+.match-target .match-port {left:-9px}
+.match-node.is-connected .match-port,.match-node.is-active .match-port {background:var(--rope-color)}
+.match-board .match-ropes {position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+.match-rope {fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.match-rope.is-dragging {stroke-width:3}
+.match-board.is-dragging,.match-board.is-dragging * {cursor:grabbing;user-select:none}
+.match-keyboard {font-size:12px;color:var(--muted);margin-top:18px}
+.match-control:disabled .match-node {opacity:1;color:var(--text);cursor:default}
+.result-correct .match-node.is-connected {border-color:#8dc768;background:#f1fae8}
+.result-wrong .match-node.is-connected {border-color:#e0bb70;background:#fff9e7}
+.match-node:focus-visible {outline-offset:5px}
 .result-correct input:disabled,.result-correct .code-workspace,.result-correct select:disabled {border-color:#8dc768;background:#f1fae8}
 .result-wrong input:disabled,.result-wrong .code-workspace,.result-wrong select:disabled {border-color:#e0bb70;background:#fff9e7}
 .input-note {font-size:15px;color:#926528;margin-top:13px}
@@ -133,10 +149,11 @@
   .choice-group {gap:12px;margin-top:24px}
   .answer-option {padding:13px 14px;gap:12px}
   .option-text {font-size:17px}
-  .match-row {grid-template-columns:1fr;gap:8px;background:#fcfaff;padding:13px;border:2px solid #e8e0f5;border-radius:14px}
-  .match-row>span {display:none}
-  .match-row select {background:#fff}
-  .match-preview {grid-column:1}
+  .match-board {gap:48px;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+  .match-column {gap:18px}
+  .match-node {min-height:78px;font-size:14px;padding:13px 10px}
+  .match-target {border-radius:18px}
+  .match-help {font-size:13px;margin-bottom:18px}
   .quiz-feedback {grid-template-columns:54px minmax(0,1fr);gap:12px;padding:18px}
   .feedback-illustration .byte-mascot {width:62px}
   .quiz-actions .check-button {width:100%}
