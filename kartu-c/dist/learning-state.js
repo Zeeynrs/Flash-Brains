@@ -161,7 +161,14 @@ export function createLearningEngine({topics,exercisesForTopic,exerciseById,stor
     catch {return false;}
   }
 
-  return {STORAGE_KEY, DAILY_GOAL, XP_PER_EXERCISE, initialState, currentSession, topicComplete, isUnlocked, localDateKey, learningStats, startTopic, setDraft, submitAnswer, advanceSession, restore, readProgress, saveProgress};
+  function validate(value) {
+    try {
+      if(!object(value) || value.version!==2) return false;
+      const canonical=Object.fromEntries(Object.keys(initialState()).map(key=>[key,value[key]]));
+      return JSON.stringify(restore(JSON.stringify(value)))===JSON.stringify(canonical);
+    } catch {return false;}
+  }
+  return {STORAGE_KEY, DAILY_GOAL, XP_PER_EXERCISE, initialState, currentSession, topicComplete, isUnlocked, localDateKey, learningStats, startTopic, setDraft, submitAnswer, advanceSession, restore, validate, readProgress, saveProgress};
 }
 
 // Namespace IDs by course so distinct subjects also combine safely if their IDs overlap.

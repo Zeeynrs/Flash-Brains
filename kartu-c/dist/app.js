@@ -11,10 +11,19 @@ import {burst,rain,countUp,clearEffects} from './effects.js';
 import {mountMatching} from './matching.js';
 import {createLessonEntrance} from './lesson-entrance.js';
 import {mountChess} from './chess-view.js';
+import {createAccountStore} from './account-store.js';
+import {createProgressSync} from './progress-sync.js';
+import {createBackend} from './backend.js';
+import {accountMarkup,syncLabel} from './account-view.js';
+import {validateAccountForm,accountError} from './account-model.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
-const loaded=Object.fromEntries(courses.map(course=>[course.id,courseContentById(course.id).learning.readProgress(storage)]));
+const accountStore=createAccountStore(storage),progressStorage=accountStore.storage;
+let backend=null,accountUser=null,accountProfile=null,accountEpoch=0,accountBusy=false,accountMessage='',syncStatus='guest',syncTimer,recoveryOwner=null,accountSync;
+const accountScreens=['login','register','forgot','recovery','profile'];
+const courseKeys=courses.map(c=>courseContentById(c.id).learning.STORAGE_KEY);
+const loaded=Object.fromEntries(courses.map(course=>[course.id,courseContentById(course.id).learning.readProgress(progressStorage)]));
 const states=Object.fromEntries(Object.entries(loaded).map(([id,result])=>[id,result.state]));
 const storageAvailableByCourse=Object.fromEntries(Object.entries(loaded).map(([id,result])=>[id,result.available]));
 let activeCourseId='c',lastCourseId;
@@ -56,11 +65,12 @@ const currentTopic=()=>topics.find(t=>t.id===state.activeTopicId);
 const currentExercise=()=>exerciseById(session()?.queue[0]);
 const persist=()=> {
   states[activeCourseId]=state;
-  storageAvailableByCourse[activeCourseId]=engine.saveProgress(storage,state);
+  storageAvailableByCourse[activeCourseId]=engine.saveProgress(progressStorage,state);
+  if(accountUser) {accountSync?.mark(activeCourseId,state);scheduleSync();}
   notice.hidden=Object.values(storageAvailableByCourse).every(Boolean);
   document.body.classList.toggle('storage-unavailable',!notice.hidden);
   const label=document.querySelector('.local-label');
-  if(label) label.textContent=notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia';
+  if(label) label.textContent=notice.hidden?syncLabel(syncStatus):'Penyimpanan browser tidak tersedia';
 };
 const persistDraft=()=>{state=setDraft(state,draft);persist();};
 const stats=()=>aggregateLearningStats({...states,[activeCourseId]:state});
@@ -95,16 +105,16 @@ function renderCatalog() {
 }
 function renderSidebar() {
   const paused=motionPaused();
-  const inCourse=screen!=='home';
+  const inCourse=['course','learn'].includes(screen);
   const learnedCount=inCourse?courseStats().solvedCount:stats().solvedCount;
   const totalExercises=inCourse?activeCourse().exerciseCount:courses.reduce((sum,c)=>sum+c.exerciseCount,0);
   sidebar.innerHTML=`<div class="sidebar-heading"><span>Jelajahi</span><button type="button" class="sidebar-close" data-action="close-sidebar" aria-label="Tutup sidebar navigasi">${icon('close')}</button></div>
     <button class="nav-home ${screen==='home'?'selected':''}" data-action="home" ${screen==='home'?'aria-current="page"':''}>${icon('home')}<span>Beranda</span></button>
-    <p class="nav-label">Pelajaran</p><nav aria-label="Pilihan pelajaran">${courses.filter(c=>c.status==='available').map(c=>`<a class="sidebar-course ${inCourse && c.id===activeCourseId?'selected':''}" href="${courseRoute(c.id)}" data-course="${c.id}" ${inCourse && c.id===activeCourseId?'aria-current="page"':''}><span class="sidebar-course-symbol" aria-hidden="true">${escape(c.symbol)}</span><span>${escape(c.title)}</span></a>`).join('')}</nav>
+    <a class="sidebar-account ${accountScreens.includes(screen)?'selected':''}" href="${accountUser?'#/profil':'#/login'}">${accountUser?escape(accountProfile?.display_name??'Profil saya'):'Masuk / Daftar'}<small>${accountUser?'Lihat profil dan sinkronisasi':'Simpan progres ke akunmu'}</small></a><p class="nav-label">Pelajaran</p><nav aria-label="Pilihan pelajaran">${courses.filter(c=>c.status==='available').map(c=>`<a class="sidebar-course ${inCourse && c.id===activeCourseId?'selected':''}" href="${courseRoute(c.id)}" data-course="${c.id}" ${inCourse && c.id===activeCourseId?'aria-current="page"':''}><span class="sidebar-course-symbol" aria-hidden="true">${escape(c.symbol)}</span><span>${escape(c.title)}</span></a>`).join('')}</nav>
     ${inCourse?`<p class="nav-label">Topik</p><nav aria-label="Daftar topik ${escape(activeCourse().shortTitle)}">${topics.map((t,i)=>`<button class="nav-topic ${screen==='learn' && state.activeTopicId===t.id?'selected':''}" data-topic="${t.id}" ${!isUnlocked(state,t.id)?'disabled':''} ${screen==='learn' && state.activeTopicId===t.id?'aria-current="step"':''}><span class="nav-number ${topicComplete(state,t.id)?'done':''}">${topicComplete(state,t.id)?icon('check'):String(i+1).padStart(2,'0')}</span><span>${escape(t.title)}</span>${!isUnlocked(state,t.id)?icon('lock'):''}<span class="sr-only">${!isUnlocked(state,t.id)?', terkunci':topicComplete(state,t.id)?', selesai':', terbuka'}</span></button>`).join('')}</nav>`:''}
     <div class="sidebar-bottom"><button class="sidebar-help text-button" data-action="guide">${icon('help')} Cara belajar</button>
     <button id="motion-toggle" class="motion-toggle text-button" data-action="motion" aria-pressed="${!paused}" aria-label="${paused?'Animasi mati. Aktifkan animasi':'Animasi aktif. Matikan animasi'}">${icon(paused?'play':'pause')}<span>${paused?'Animasi mati':'Animasi aktif'}</span></button>
-    <div class="mini-progress"><span>Latihanmu</span><strong>${learnedCount}/${totalExercises}</strong></div><progress max="${totalExercises}" value="${learnedCount}" aria-label="Total latihan dikuasai"></progress><span class="local-label">${notice.hidden?'Progres tersimpan di browser ini':'Penyimpanan browser tidak tersedia'}</span></div>`;
+    <div class="mini-progress"><span>Latihanmu</span><strong>${learnedCount}/${totalExercises}</strong></div><progress max="${totalExercises}" value="${learnedCount}" aria-label="Total latihan dikuasai"></progress><span class="local-label">${notice.hidden?syncLabel(syncStatus):'Penyimpanan browser tidak tersedia'}</span></div>`;
   shell.sync();
 }
 const rewardBar=({streak=true}={})=>`<div class="reward-bar" aria-label="Pencapaian belajar"><span class="reward-pill xp-pill" title="XP yang sudah kamu kumpulkan">${icon('gem')}<strong>${stats().xp}</strong><span>XP</span></span>${streak?`<span class="reward-pill streak-pill" title="Hari berturut-turut mencapai target">${icon('fire')}<strong>${stats().streak}</strong><span>hari</span></span>`:''}</div>`;
@@ -128,7 +138,7 @@ function renderCourse() {
         return `<button class="topic-row unit-${colors[i]} ${done?'is-done':open?'is-open':'is-locked'} ${active.id===t.id?'is-next':''}" data-topic="${t.id}" ${!open?'disabled':''} style="--bend:${[0,1,2,1][i%4]}"><span class="path-node">${icon(done?'check':open?glyphs[i]:'lock')}<span class="node-unit" aria-hidden="true">${unit(i)}</span></span><span class="topic-content"><span class="topic-title"><span class="sr-only">Unit ${i+1}: </span>${escape(t.title)}${active.id===t.id && open?`<span class="next-badge">${continuing?'Lanjutkan':'Mulai di sini'}</span>`:''}</span><span class="topic-status">${status}</span>${open?`<span class="exercise-track" aria-hidden="true">${exercisesForTopic(t.id).map(ex=>`<span class="${state.solved[t.id]?.includes(ex.id)?'filled':''}"></span>`).join('')}</span>`:''}</span></button>`;
       }).join('')}</div><p class="path-finish">${icon('trophy')}<span>${allDone?'Petualangan tuntas! Terus asah logikamu.':escape(activeCourse().goalLabel)}</span></p></section>
     <footer class="page-footer"><span>Belajar. Coba. Paham. Ulangi.</span><button class="text-button" data-action="guide" aria-expanded="${showGuide}">Cara bermain ${showGuide?'−':'+'}</button></footer>
-    ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Jadi jago, satu soal dulu.</h2><ol><li>Pilih jawabanmu, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca petunjuknya. Soal yang salah menunggu di putaran ulang setelah soal lain selesai.</li><li>Selesaikan 9 latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dari pelajaran mana saja dalam satu hari untuk mencapai misi dan menambah streak. Review dihitung untuk misi harian, tanpa menggandakan XP. Tanggal mengikuti perangkatmu. Progres tersimpan di browser ini dan tidak tersinkron antarperangkat. ${activeCourse().kind==='chess'?'Pada papan catur, pilih bidak lalu petak tujuannya. Langkah harus sah dan menjaga rajamu aman. Gunakan Ulangi posisi untuk mengubah jawaban sebelum diperiksa.':`Kode menggunakan ${escape(activeCourse().codeStandard)} dan tidak dieksekusi di browser.`}</p></section>`:''}</div>`;
+    ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Jadi jago, satu soal dulu.</h2><ol><li>Pilih jawabanmu, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca petunjuknya. Soal yang salah menunggu di putaran ulang setelah soal lain selesai.</li><li>Selesaikan 9 latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dari pelajaran mana saja dalam satu hari untuk mencapai misi dan menambah streak. Review dihitung untuk misi harian, tanpa menggandakan XP. Tanggal mengikuti perangkatmu. Tamu menyimpan progres di browser ini. Masuk ke akun untuk menyinkronkan progres antarperangkat. ${activeCourse().kind==='chess'?'Pada papan catur, pilih bidak lalu petak tujuannya. Langkah harus sah dan menjaga rajamu aman. Gunakan Ulangi posisi untuk mengubah jawaban sebelum diperiksa.':`Kode menggunakan ${escape(activeCourse().codeStandard)} dan tidak dieksekusi di browser.`}</p></section>`:''}</div>`;
 }
 function renderLearn() {
   const s=session(), topic=currentTopic();
@@ -159,7 +169,8 @@ function render(focus=false) {
   main.dataset.course=screen==='home'?'':activeCourseId;
   main.dataset.fx=fx??'';fx=null;
   renderSidebar();
-  if(screen==='home') renderCatalog();else if(screen==='course') renderCourse();else renderLearn();
+  if(accountScreens.includes(screen)) renderAccount();else if(screen==='home') renderCatalog();else if(screen==='course') renderCourse();else renderLearn();
+  if(accountScreens.includes(screen)) {document.title='Akun — Flash Brains';document.querySelector('#header-context').textContent='Akun';shell.sync();if(focus)main.querySelector('h1')?.focus();return;}
   document.title=screen==='home'?'Flash Brains — Pilih pelajaranmu':screen==='course'?`${activeCourse().title} — Flash Brains`:`${currentTopic()?.title??'Belajar'} — Flash Brains`;
   document.querySelector('#header-context').textContent=screen==='home'?'Beranda':screen==='course'?`Pelajaran / ${activeCourse().title}`:`${activeCourse().title} / ${currentTopic()?.title??'Latihan'}`;
   shell.sync();requestAnimationFrame(drawCourseRoute);
@@ -180,7 +191,11 @@ function applyRoute(focus=false) {
   const course=route.courseId?courseById(route.courseId):null;
   showGuide=false;
   if(course?.status==='available' && courseContentById(course.id)) selectCourse(course.id);
-  if(route.screen!=='home' && (!course || course.status!=='available' || !courseContentById(course.id))) {
+  if(accountScreens.includes(route.screen)) {
+    screen=route.screen;
+    if(accountUser && ['login','register'].includes(screen)) {screen='profile';history.replaceState(null,'','#/profil');}
+    if(screen==='profile' && !accountUser) {screen='login';history.replaceState(null,'','#/login');}
+  } else if(route.screen!=='home' && (!course || course.status!=='available' || !courseContentById(course.id))) {
     history.replaceState(null,'','#/');screen='home';
   } else if(route.screen==='learn') {
     if(!topics.some(t=>t.id===route.topicId) || !isUnlocked(state,route.topicId)) {
@@ -257,6 +272,8 @@ document.addEventListener('click',event=> {
   if(event.target.closest('.skip')) {
     event.preventDefault();closeMenu();main.focus({preventScroll:true});main.scrollIntoView({block:'start'});return;
   }
+  const accountAction=event.target.closest('[data-account]');
+  if(accountAction && !accountAction.disabled) {void performAccount(accountAction.dataset.account);return;}
   const course=event.target.closest('a[data-course]');
   if(course && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.button===0){event.preventDefault();openCourse(course.dataset.course);}
   const topic=event.target.closest('[data-topic]');
@@ -275,6 +292,7 @@ document.addEventListener('click',event=> {
   }
 });
 document.addEventListener('submit',event=> {
+  if(event.target.id==='account-form') {event.preventDefault();void submitAccount(event.target);return;}
   if(event.target.id!=='answer-form') return;
   event.preventDefault();
   if(session()?.pending || !isAnswerComplete(currentExercise(),draft)) return;
@@ -294,10 +312,133 @@ document.addEventListener('change',event=> {
   if(screen!=='learn' || session()?.pending) return;
   if(event.target.name==='choice') {draft=event.target.value;persistDraft();refreshSubmit();}
 });
-window.addEventListener('hashchange',()=>{lessonEntrance.cancel();applyRoute(true);});
+function scheduleSync() {clearTimeout(syncTimer);syncTimer=setTimeout(()=>void accountSync?.flush(),800);}
+function renderAccount() {
+  let pending=null,available=false;
+  try {pending=accountUser?accountStore.pendingImport(accountUser.id):null;available=accountStore.guestAvailable(courseKeys);}catch { /* Private account still works without guest import. */ }
+  main.innerHTML=accountMarkup({screen,user:accountUser,profile:accountProfile,stats:stats(),progress:progressByCourse(),courses,status:syncStatus,config:backend?.config,
+    message:accountMessage,busy:accountBusy,importAvailable:available,importPending:pending&&!pending.completed,recoveryAllowed:!!accountUser&&recoveryOwner===accountUser.id});
+}
+function showAccountMessage(message) {
+  accountMessage=message;const element=main.querySelector('#account-message');
+  if(element) {element.hidden=!message;element.textContent=message;}
+  announcement.textContent=message;
+}
+function accountLoading(busy) {
+  accountBusy=busy;
+  main.querySelectorAll('#account-form button,[data-account]').forEach(button=>button.disabled=busy);
+  const google=main.querySelector('[data-account="google"]');if(google&&!backend?.config.googleEnabled)google.disabled=true;
+  const importing=main.querySelector('[data-account="import"]');if(importing&&syncStatus!=='synced')importing.disabled=true;
+}
+accountSync=createProgressSync({engines:Object.fromEntries(courses.map(c=>[c.id,courseContentById(c.id).learning])),
+  read:owner=>backend.read(owner),write:(...args)=>backend.write(...args),
+  onState(id,value) {
+    const changed=JSON.stringify(states[id])!==JSON.stringify(value);
+    states[id]=value;storageAvailableByCourse[id]=courseContentById(id).learning.saveProgress(progressStorage,value);
+    if(id===activeCourseId) {state=value;draft=session()?.pending?.input??session()?.draft;}
+    if(changed) {if(!lessonEntrance.playing)render();}
+  },
+  onPending(value) {try {progressStorage.setItem('sync-pending-v1',JSON.stringify(value));}catch {notice.hidden=false;document.body.classList.add('storage-unavailable');}},
+  onStatus(value) {
+    syncStatus=value;
+    for(const el of document.querySelectorAll('.local-label,[data-sync-status]'))el.textContent=syncLabel(value);
+    const importing=main.querySelector('[data-account="import"]');if(importing)importing.disabled=accountBusy||value!=='synced';
+  }
+});
+async function changeIdentity(authSession,event) {
+  if(!backend)return;
+  const user=authSession?.user??null;
+  if((user?.id??null)===(accountUser?.id??null)) {if(user&&event==='TOKEN_REFRESHED')scheduleSync();return;}
+  const epoch=++accountEpoch;
+  if(recoveryOwner!==user?.id)recoveryOwner=null;
+  lessonEntrance.cancel();disposeMatching();disposeChess();clearEffects();clearTimeout(syncTimer);accountSync.disconnect();
+  accountUser=user;accountProfile=null;accountMessage='';accountBusy=false;accountStore.switchUser(user?.id??null);
+  for(const c of courses) {const loaded=courseContentById(c.id).learning.readProgress(progressStorage);states[c.id]=loaded.state;storageAvailableByCourse[c.id]=loaded.available;}
+  state=states[activeCourseId];draft=session()?.pending?.input??session()?.draft;
+  notice.hidden=Object.values(storageAvailableByCourse).every(Boolean);document.body.classList.toggle('storage-unavailable',!notice.hidden);
+  syncStatus=user?'syncing':'guest';
+  if(!user) {history.replaceState(null,'','#/');}
+  else if(['login','register'].includes(parseRoute(location.hash).screen))history.replaceState(null,'','#/profil');
+  applyRoute(true);
+  if(user) {
+    let pending={};try {pending=JSON.parse(progressStorage.getItem('sync-pending-v1')??'{}');}catch { /* Full state still merges monotonically. */ }
+    void accountSync.connect(user.id,states,pending);
+    try {const profile=await backend.profile();if(epoch!==accountEpoch)return;accountProfile=profile;renderSidebar();if(screen==='profile')renderAccount();}
+    catch {if(epoch===accountEpoch)showAccountMessage('Profil belum dapat dimuat. Periksa koneksi dan coba sinkronkan kembali.');}
+  }
+}
+async function performAccount(action) {
+  if(accountBusy)return;
+  if(!backend){showAccountMessage('Layanan akun belum tersedia. Kamu tetap bisa belajar sebagai tamu.');return;}
+  const epoch=accountEpoch;accountLoading(true);showAccountMessage('');
+  try {
+    if(action==='google')await backend.google();
+    if(action==='logout') {const owner=accountUser?.id;await accountSync.flush();if(epoch!==accountEpoch)return;await backend.logout(owner);if(epoch!==accountEpoch)return;await changeIdentity(null,'SIGNED_OUT');}
+    if(action==='sync') {
+      const ok=await accountSync.flush();if(epoch!==accountEpoch)return;
+      if(accountUser)accountProfile=await backend.profile();if(epoch!==accountEpoch)return;
+      showAccountMessage(ok?'Progres sudah tersinkron.':'Sinkronisasi belum berhasil. Progres di perangkat tetap disimpan.');
+    }
+    if(action==='import' && accountUser) {
+      if(!await accountSync.flush())throw Error('sync');if(epoch!==accountEpoch)return;
+      const owner=accountUser.id,backup=await accountStore.reserveGuest(owner,courseKeys),imports={};
+      if(epoch!==accountEpoch)return;
+      for(const c of courses) {
+        const eng=courseContentById(c.id).learning,raw=backup.values[eng.STORAGE_KEY];if(!raw)continue;
+        const value=JSON.parse(raw),restored=value.version===1?eng.restore(raw):value;
+        if(!eng.validate(restored))throw Error('invalid guest');imports[c.id]=restored;
+      }
+      const ok=await accountSync.importStates(imports);if(epoch!==accountEpoch)return;
+      if(!ok)throw Error('import pending');
+      await accountStore.completeImport(owner,backup.generation);if(epoch!==accountEpoch)return;accountMessage='Progres tamu berhasil digabungkan. Salinan asal tetap dicadangkan di perangkat ini.';renderAccount();
+    }
+  } catch(error) {if(epoch===accountEpoch)showAccountMessage(action==='import'?'Impor belum selesai. Salinan tamu tetap dicadangkan untuk akun ini; coba lagi setelah koneksi pulih.':accountError(error));}
+  finally {if(epoch===accountEpoch)accountLoading(false);}
+}
+async function submitAccount(form) {
+  if(accountBusy||!backend)return;
+  const fields=Object.fromEntries(new FormData(form)),mode=form.dataset.mode;
+  const invalid=validateAccountForm(mode,fields);if(invalid){showAccountMessage(invalid);return;}
+  const epoch=accountEpoch;accountLoading(true);showAccountMessage('');
+  try {
+    if(mode==='login') {const result=await backend.login(fields.email.trim(),fields.password);await changeIdentity(result.session,'SIGNED_IN');}
+    if(mode==='register') {
+      if(!backend.config.emailDeliveryReady){showAccountMessage('Pengiriman email sedang disiapkan. Pendaftaran akan tersedia setelah layanan email aktif.');return;}
+      const result=await backend.register(fields.email.trim(),fields.password,fields.name);
+      if(result.session)await changeIdentity(result.session,'SIGNED_IN');else {form.reset();showAccountMessage('Periksa email untuk mengonfirmasi akun. Buka tautan di browser yang sama.');}
+    }
+    if(mode==='forgot') {
+      if(!backend.config.emailDeliveryReady){showAccountMessage('Pengiriman email pemulihan sedang disiapkan. Coba lagi setelah layanan email aktif.');return;}
+      await backend.forgot(fields.email.trim());showAccountMessage('Jika email terdaftar, tautan pemulihan akan dikirim. Buka di browser yang sama.');
+    }
+    if(mode==='recovery') {
+      if(!accountUser||recoveryOwner!==accountUser.id)throw Error('recovery');await backend.recover(recoveryOwner,fields.password);if(epoch!==accountEpoch)return;recoveryOwner=null;
+      accountMessage='Kata sandi diperbarui.';setRoute('#/profil');
+    }
+    if(mode==='profile'&&accountUser) {
+      const profile=await backend.updateProfile(accountUser.id,{display_name:fields.name.trim(),avatar_id:fields.avatar});
+      if(epoch!==accountEpoch)return;accountProfile=profile;renderSidebar();showAccountMessage('Profil berhasil disimpan.');
+    }
+  }catch(error){if(epoch===accountEpoch)showAccountMessage(accountError(error));}
+  finally{if(epoch===accountEpoch)accountLoading(false);}
+}
+async function initializeAccounts() {
+  try {
+    backend=await createBackend({onAuth:(value,event)=>void changeIdentity(value,event),
+      onRecovery:owner=>{recoveryOwner=owner??null;history.replaceState(null,'','#/reset-password');if(backend)applyRoute();},
+      onError:error=>{accountMessage=accountError(error);}});
+    if(backend) {const value=await backend.session();await changeIdentity(value,'INITIAL_SESSION');}
+    if(accountScreens.includes(screen)||accountScreens.includes(parseRoute(location.hash).screen))applyRoute();
+  }catch {showAccountMessage('Layanan akun belum dapat terhubung. Belajar sebagai tamu tetap tersedia.');}
+}
+window.addEventListener('online',()=>{if(accountUser)scheduleSync();});
+window.addEventListener('pagehide',()=>{clearTimeout(syncTimer);});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&accountUser)scheduleSync();});
+window.addEventListener('hashchange',()=>{lessonEntrance.cancel();accountMessage='';applyRoute(true);});
 window.addEventListener('resize',drawCourseRoute);
 if(!location.hash) history.replaceState(null,'','#/');
 applyRoute(false);
+void initializeAccounts();
 
 function drawCourseRoute() {
   const map=document.querySelector('#course-map'), route=document.querySelector('#course-route');

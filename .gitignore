@@ -3,3 +3,5 @@
 node_modules/
 .vercel/
 .env*
+supabase/.temp/
+kartu-c/dist/backend-config.json

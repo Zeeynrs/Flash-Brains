@@ -1,0 +1,2 @@
+# The browser bundle contains significant trailing whitespace in template literals.
+kartu-c/dist/vendor/supabase.js -whitespace
