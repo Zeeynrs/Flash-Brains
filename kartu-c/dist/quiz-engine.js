@@ -1,10 +1,12 @@
-export const typeLabels = {choice:'Pilihan ganda',output:'Tebak output',fill:'Lengkapi kode',order:'Susun kode',bug:'Cari bug',match:'Pasangkan konsep',logic:'Teka-teki logika'};
+import {validChessAnswer,gradeChessAnswer,chessAnswerText} from './chess-engine.js';
+export const typeLabels = {choice:'Pilihan ganda',output:'Tebak output',fill:'Lengkapi kode',order:'Susun kode',bug:'Cari bug',match:'Pasangkan konsep',logic:'Teka-teki logika',chess:'Latihan papan'};
 const normalize = value => value.trim().replace(/\s+/g,' ');
 const plainObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 export function isAnswerComplete(ex,input) {
   if(!ex) return false;
   switch(ex.type) {
+    case 'chess': return validChessAnswer(ex,input);
     case 'choice': case 'output': case 'bug': case 'logic':
       return typeof input === 'string' && ex.options.some(o=>o.id === input);
     case 'fill': return typeof input === 'string' && input.trim().length > 0 && input.length <= 1000;
@@ -15,12 +17,14 @@ export function isAnswerComplete(ex,input) {
 }
 export function gradeExercise(ex,input) {
   if(!isAnswerComplete(ex,input)) return false;
+  if(ex.type==='chess') return gradeChessAnswer(ex,input);
   if(ex.type==='fill') return ex.accepted.some(answer=>normalize(answer)===normalize(input));
   if(ex.type==='order') return ex.answer.every((id,i)=>id===input[i]);
   if(ex.type==='match') return ex.pairs.every(p=>input[p.id]===p.id);
   return input===ex.answer;
 }
 export function correctAnswerText(ex) {
+  if(ex.type==='chess') return chessAnswerText(ex);
   if(ex.type==='fill') return ex.accepted[0];
   if(ex.type==='order') return ex.answer.map(id=>ex.tokens.find(t=>t.id===id).text).join('\n');
   if(ex.type==='match') return ex.pairs.map(p=>`${p.left} → ${p.right}`).join('\n');

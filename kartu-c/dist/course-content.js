@@ -4,10 +4,14 @@ import {cLearning} from './state.js';
 import {topics as pythonTopics} from './python-curriculum.js';
 import {exercisesForTopic as pythonExercises,exerciseById as pythonExercise} from './python-quizzes.js';
 import {createLearningEngine} from './learning-state.js';
+import {topics as chessTopics} from './chess-curriculum.js';
+import {exercisesForTopic as chessExercises,exerciseById as chessExercise} from './chess-quizzes.js';
 
 const pythonLearning=createLearningEngine({topics:pythonTopics,exercisesForTopic:pythonExercises,exerciseById:pythonExercise,storageKey:'flash-brains-python-progress-v1'});
+const chessLearning=createLearningEngine({topics:chessTopics,exercisesForTopic:chessExercises,exerciseById:chessExercise,storageKey:'flash-brains-chess-progress-v1'});
 const content=new Map([
   ['c',{topics:cTopics,exercisesForTopic:cExercises,exerciseById:cExercise,learning:cLearning}],
-  ['python',{topics:pythonTopics,exercisesForTopic:pythonExercises,exerciseById:pythonExercise,learning:pythonLearning}]
+  ['python',{topics:pythonTopics,exercisesForTopic:pythonExercises,exerciseById:pythonExercise,learning:pythonLearning}],
+  ['chess',{topics:chessTopics,exercisesForTopic:chessExercises,exerciseById:chessExercise,learning:chessLearning}]
 ]);
 export const courseContentById=id=>content.get(id);

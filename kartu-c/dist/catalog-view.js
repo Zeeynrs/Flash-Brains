@@ -10,7 +10,7 @@ export function missionMarkup(todayCount) {
 }
 export function courseCardsMarkup(query,progressByCourse={}) {
   const matches=searchCourses(query);
-  if(!matches.length) return `<div class="catalog-empty">${icon('search')}<h3>Belum ketemu pelajaran yang cocok.</h3><p>Coba kata lain, misalnya Python atau C.</p></div>`;
+  if(!matches.length) return `<div class="catalog-empty">${icon('search')}<h3>Belum ketemu pelajaran yang cocok.</h3><p>Coba kata lain, misalnya Python, C, atau catur.</p></div>`;
   return matches.map(c=> {
     const progress=progressByCourse[c.id]??{solvedCount:0};
     return `<article class="catalog-course-card" data-tone="${c.tone}"><div class="catalog-card-top"><span class="catalog-course-symbol" aria-hidden="true">${escape(c.symbol)}</span><div><h3><a href="${courseRoute(c.id)}" data-course="${c.id}">${escape(c.title)}</a></h3><span class="catalog-card-meta">${escape(c.level)} · ${c.topicCount} topik · ${c.exerciseCount} latihan</span></div></div><p class="catalog-description">${escape(c.description)}</p><div class="catalog-course-progress"><progress max="${c.exerciseCount}" value="${progress.solvedCount}" aria-label="Progres ${escape(c.title)}"></progress><span>${progress.solvedCount}/${c.exerciseCount}</span></div><a class="primary catalog-course-link" href="${courseRoute(c.id)}" data-course="${c.id}">${progress.solvedCount?'Lanjutkan':'Mulai belajar'} ${icon('arrow')}</a></article>`;

@@ -28,6 +28,7 @@
 .entrance-card-shadow {position:absolute;left:50%;top:52%;width:340px;height:475px;border-radius:32px;background:#0b100d;filter:blur(22px);transform:translate(-50%,-50%);opacity:.5}
 .entrance-card {--card-accent:#76a66d;position:absolute;left:50%;top:50%;width:320px;height:450px;transform:translate(-50%,-50%) translateZ(100px) rotate(-6deg);transform-style:preserve-3d;will-change:transform}
 .entrance-card[data-tone="blue"] {--card-accent:#6ba4be}
+.entrance-card[data-tone="gold"] {--card-accent:#ad8b47}
 .entrance-face {position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;border:1px solid #f9efd78c;box-shadow:0 1px 0 2px #8e7959,0 3px 0 2px #493d2d,inset 0 0 0 7px #ffffff12}
 .entrance-front {display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:29px 28px;background:radial-gradient(ellipse at top right,#486150,#1f382b 65%);transform:translateZ(2px)}
 .entrance-brand {display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900;color:#e3ead7}
@@ -40,6 +41,7 @@
 .entrance-card-kicker {font-size:8px;font-weight:900;letter-spacing:2px;color:#8b8369}
 .entrance-course-symbol {display:grid;place-items:center;width:52px;height:52px;border-radius:14px;border:1px solid #99ae8780;background:#bcd0a33d;color:#457045;font-size:26px;font-weight:900;margin:20px 0 16px}
 .entrance-card[data-tone="blue"] .entrance-course-symbol {border-color:#8fb2bb80;background:#b1d0dc3d;color:#457284}
+.entrance-card[data-tone="gold"] .entrance-course-symbol {border-color:#bda26880;background:#ddc88b3d;color:#8a6c32}
 .entrance-back h2 {font-size:27px;line-height:1.1;letter-spacing:-.8px;margin:0 0 10px}
 .entrance-back>p {font-size:13px;line-height:1.5;color:#6f755f}
 .entrance-mini-lessons {display:grid;width:100%;gap:8px;margin:22px 0 auto}

@@ -13,6 +13,12 @@ export const courses=[{
   tags:['dasar','python','list','kode','logika'],status:'available',engine:'quiz',tone:'blue',
   rangeLabel:'Dari nol sampai list',finishLabel:'Dari nol, sekarang jago list!',
   goalLabel:'Tujuanmu: paham Python, dari print() sampai list.',codeStandard:'Python 3'
+},{
+  id:'chess',title:'Catur',shortTitle:'Catur',symbol:'♟',category:'Strategi',level:'Pemula',
+  description:'Kenali bidak, temukan langkah, dan pecahkan puzzle di papan interaktif. Belajar dari langkah pertama sampai skakmat.',
+  tags:['catur','chess','papan','bidak','puzzle','strategi','skakmat'],status:'available',engine:'quiz',tone:'gold',kind:'chess',
+  rangeLabel:'Dari langkah pertama sampai skakmat',finishLabel:'Satu langkah lebih jago catur!',
+  goalLabel:'Tujuanmu: membaca papan dan menemukan skakmat.'
 }].map(course=>{
   const content=courseContentById(course.id);
   return {...course,progressKey:content.learning.STORAGE_KEY,topicCount:content.topics.length,

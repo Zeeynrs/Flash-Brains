@@ -4,8 +4,8 @@ import {courses} from '../dist/courses.js';
 import {courseContentById} from '../dist/course-content.js';
 import {aggregateLearningStats} from '../dist/learning-state.js';
 import {catalogMarkup,courseCardsMarkup} from '../dist/catalog-view.js';
-const answer=ex=>ex.options?ex.answer:ex.type==='fill'?ex.accepted[0]:ex.type==='order'?ex.answer:Object.fromEntries(ex.pairs.map(p=>[p.id,p.id]));
-test('both courses complete and restore after every answer without modifying the other course',()=>{
+const answer=ex=>ex.options || ex.type==='chess'?ex.answer:ex.type==='fill'?ex.accepted[0]:ex.type==='order'?ex.answer:Object.fromEntries(ex.pairs.map(p=>[p.id,p.id]));
+test('all three courses complete and restore after every answer without modifying other courses',()=>{
   const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};
   const states=Object.fromEntries(courses.map(c=>[c.id,courseContentById(c.id).learning.initialState()]));
   for(const course of courses){
@@ -27,7 +27,7 @@ test('both courses complete and restore after every answer without modifying the
     assert.equal(engine.learningStats(state).xp,800);
   }
   for(const course of courses) assert.deepEqual(courseContentById(course.id).learning.readProgress(storage).state,states[course.id]);
-  assert.deepEqual(aggregateLearningStats(states,'2026-11-09'),{xp:1600,todayCount:160,goal:5,streak:1,solvedCount:160});
+  assert.deepEqual(aggregateLearningStats(states,'2026-11-09'),{xp:2400,todayCount:240,goal:5,streak:1,solvedCount:240});
   assert.equal(courseContentById('__proto__'),undefined);
 });
 test('Python wrong answers wait until the end and cannot award duplicate XP',()=>{

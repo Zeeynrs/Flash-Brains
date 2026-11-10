@@ -1,8 +1,8 @@
 # Flash-Brains
 
-Webapp belajar berbahasa Indonesia dengan beranda katalog pelajaran. Tersedia **Pemrograman C** (struktur program sampai array dua dimensi) dan **Pemrograman Python** (print sampai slicing dan list bersarang). Masing-masing memiliki delapan topik, 80 latihan interaktif, dan 40 kartu referensi, dilengkapi XP, target harian, dan streak.
+Webapp belajar berbahasa Indonesia dengan beranda katalog pelajaran. Tersedia **Pemrograman C** (struktur program sampai array dua dimensi), **Pemrograman Python** (print sampai slicing dan list bersarang), dan **Catur** (mengenal papan sampai skakmat satu langkah). Masing-masing memiliki delapan topik, 80 latihan interaktif, dan 40 kartu referensi, dilengkapi XP, target harian, dan streak.
 
-Variasi latihan: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika. Jawaban diperiksa otomatis; soal yang salah dikumpulkan untuk diulang di akhir putaran. Tuntaskan sembilan latihan lalu tantangan akhir untuk membuka topik berikutnya.
+Variasi latihan: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika. Catur menambah papan interaktif: pilih petak, pindahkan bidak, pilih promosi, dan temukan mat. Klik bidak lalu tujuannya, atau gunakan tombol panah dan Enter. Jawaban diperiksa otomatis; soal yang salah dikumpulkan untuk diulang di akhir putaran. Tuntaskan sembilan latihan lalu tantangan akhir untuk membuka topik berikutnya.
 
 ```sh
 cd kartu-c
@@ -18,7 +18,7 @@ npm test
 
 Lihat [petunjuk aplikasi](kartu-c/README.md) untuk struktur dan perilaku penyimpanan progres.
 
-Setiap soal memberi 10 XP hanya saat pertama kali dijawab benar. Target harian adalah lima soal berbeda yang dijawab benar dari gabungan semua pelajaran; latihan ulang juga dihitung untuk target. XP dan streak ditampilkan bersama, sedangkan progres topik, jawaban, dan sesi C/Python disimpan terpisah. Progres versi flashcard sebelumnya dimigrasikan otomatis dengan mempertahankan akses topik yang sudah terbuka.
+Setiap soal memberi 10 XP hanya saat pertama kali dijawab benar. Target harian adalah lima soal berbeda yang dijawab benar dari gabungan semua pelajaran; latihan ulang juga dihitung untuk target. XP dan streak ditampilkan bersama, sedangkan progres topik, jawaban, dan sesi C/Python/Catur disimpan terpisah. Progres versi flashcard sebelumnya dimigrasikan otomatis dengan mempertahankan akses topik yang sudah terbuka.
 
 UI berwarna dengan jalur level berkelok, tombol dengan efek tekan, dan karakter kartun orisinal **Byte** yang menemani latihan. Responsif untuk HP, tablet dan desktop; animasi dapat dijeda dan mengikuti preferensi kurangi gerakan perangkat.
 
@@ -28,6 +28,7 @@ UI berwarna dengan jalur level berkelok, tombol dengan efek tekan, dan karakter 
 - `#/pelajaran/c`: peta pelajaran Pemrograman C.
 - `#/pelajaran/c/topik/struktur`: contoh tautan langsung ke topik C.
 - `#/pelajaran/python`: peta pelajaran Pemrograman Python.
+- `#/pelajaran/chess`: peta kursus Catur, dengan 80 latihan dan puzzle.
 - `#/pelajaran/python/topik/py-mulai`: topik pertama Python.
 
 Sidebar kiri bisa dibuka/ditutup lewat tombol Menu. Pilihan desktop diingat di browser. Di HP, menu menjadi drawer dengan backdrop, tombol tutup, Escape dan dukungan keyboard. Back/Forward dan reload mempertahankan sesi belajar.
@@ -40,7 +41,7 @@ Proyek Vercel: `flash-brains`, terhubung ke repo GitHub ini. Push ke `main` memi
 
 Konfigurasi `vercel.json` berada di root repo. Framework: Other; tidak ada perintah instalasi atau build; output statis: `kartu-c/dist`.
 
-Subdomain: `flash-brains.parallel-dungeons.site`. DNS domain dikelola di Cloudflare; subdomain memerlukan record CNAME sesuai konfigurasi domain Vercel.
+Domain utama: `flashbrains.site`, dengan DNS di Hostinger. `www.flashbrains.site` diarahkan ke domain utama. Domain lama `flash-brains.parallel-dungeons.site` tetap dapat terdaftar pada proyek Vercel yang sama.
 
 Progres belajar tersimpan per browser dan origin. Progres pada URL ChatGPT Sites tidak otomatis berpindah ke domain Vercel.
 

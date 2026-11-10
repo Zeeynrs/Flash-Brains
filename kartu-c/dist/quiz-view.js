@@ -1,7 +1,9 @@
 import { correctAnswerText, shuffled } from './quiz-engine.js';
 import { byteMascot } from './mascot.js';
+import {escape} from './html.js';
+import {chessBoardMarkup} from './chess-view.js';
 
-export const escape = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export {escape};
 export function icon(name) {
   const paths={
     menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -26,16 +28,18 @@ export function icon(name) {
     fire:'<path d="M12 3c1 5-5 5-5 10a5 5 0 0 0 10 0c0-2-1-4-2-5 0 3-2 3-2 3s2-4-1-8Z"/>',
     target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
     bolt:'<path d="m13 2-8 12h6l-1 8 9-13h-6Z"/>',
-    layers:'<path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>'
+    layers:'<path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>',
+    chess:'<path d="M8 3h8v4h3v4l-3 2v5l3 3H5l3-3v-5l-3-2V7h3Zm0 4h8M8 18h8M12 3v4"/>'
   };
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]??paths.arrow}</svg>`;
 }
 export const codeBlock = (code,extra='') => `<pre class="question-code ${extra}"><code>${escape(code)}</code></pre>`;
 export function answerControls(ex,input,seed,pending) {
+  if(ex.type==='chess') return chessBoardMarkup(ex,input,pending);
   const disabled=pending ? 'disabled' : '';
   const result=pending ? (pending.correct ? 'result-correct' : 'result-wrong') : '';
   if(ex.options) {
-    return `<fieldset class="choice-group" ${disabled}><legend class="sr-only">Pilih satu jawaban</legend>${shuffled(ex.options,`${seed}:${ex.id}`).map((o,i)=>{
+    return `${ex.position?chessBoardMarkup(ex,null,pending,true):''}<fieldset class="choice-group" ${disabled}><legend class="sr-only">Pilih satu jawaban</legend>${shuffled(ex.options,`${seed}:${ex.id}`).map((o,i)=>{
       const correct=pending && o.id===ex.answer, selected=input===o.id;
       return `<label class="answer-option ${correct?'answer-correct':''} ${pending && selected && !correct?'answer-wrong':''}"><input type="radio" name="choice" value="${escape(o.id)}" ${selected?'checked':''}><span class="option-key" aria-hidden="true">${String.fromCharCode(65+i)}</span><span class="option-text">${escape(o.text)}${correct?'<small>Jawaban benar</small>':pending && selected?'<small>Pilihanmu</small>':''}</span>${correct?icon('check'):pending && selected?icon('close'):''}</label>`;
     }).join('')}</fieldset>`;

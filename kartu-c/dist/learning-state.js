@@ -47,6 +47,7 @@ export function createLearningEngine({topics,exercisesForTopic,exerciseById,stor
   function validDraft(ex,input) {
     if(input===null) return true;
     if(!ex) return false;
+    if(ex.type==='chess') return isAnswerComplete(ex,input);
     if(ex.options) return typeof input==='string' && ex.options.some(o=>o.id===input);
     if(ex.type==='fill') return typeof input==='string' && input.length<=1000;
     if(ex.type==='order') return unique(input) && input.length<=ex.tokens.length && input.every(id=>ex.tokens.some(t=>t.id===id));

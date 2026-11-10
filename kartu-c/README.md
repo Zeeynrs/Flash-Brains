@@ -1,6 +1,6 @@
-# Flash Brains — latihan C dan Python
+# Flash Brains — latihan C, Python, dan Catur
 
-Webapp belajar berbahasa Indonesia dengan dua pelajaran: C dari struktur program sampai array dua dimensi, dan Python 3 dari print sampai slicing dan list bersarang. Setiap pelajaran memiliki delapan topik, masing-masing sepuluh latihan dan lima kartu referensi. Tidak membutuhkan instalasi dependensi atau backend.
+Webapp belajar berbahasa Indonesia dengan tiga pelajaran: C dari struktur program sampai array dua dimensi, Python 3 dari print sampai slicing dan list bersarang, dan catur dari pengenalan papan sampai skakmat satu langkah. Setiap pelajaran memiliki delapan topik, masing-masing sepuluh latihan dan lima kartu referensi. Tidak membutuhkan instalasi dependensi atau backend.
 
 ## Menjalankan
 
@@ -20,7 +20,10 @@ npm test
 
 ## Perilaku
 
-- Tujuh interaksi: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika.
+- Pada C/Python, tujuh interaksi: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika.
+- Catur menambahkan papan SVG, pemilihan petak, langkah sah, rokade, en passant, pilihan promosi, petunjuk, dan reset posisi. Gunakan klik/sentuhan atau tombol panah dan Enter. Semua mat alternatif yang sah diterima.
+- Aturan catur memakai chess.js 1.4.0 yang disertakan secara lokal dengan lisensi BSD-2-Clause; tidak ada bot, backend, atau CDN runtime.
+- Progres catur memakai key terpisah `flash-brains-chess-progress-v1`.
 - Tekan Periksa jawaban untuk mendapat penilaian otomatis dan penjelasan, lalu Lanjutkan.
 - Setiap jawaban punya animasinya sendiri: jawaban benar memunculkan konfeti, centang, XP, dan progres yang bertambah; jawaban salah membuat kartu bergetar lalu menyorot jawaban yang tepat. Menuntaskan topik memicu perayaan dengan hujan konfeti dan angka hasil yang menghitung naik. Animasi hanya muncul pada momennya, tidak terulang saat halaman dimuat ulang.
 - Sembilan soal latihan utama dikerjakan lebih dulu. Jawaban salah dikumpulkan untuk putaran ulang setelah soal lain selesai; ulangi tanpa batas sampai benar.
@@ -28,8 +31,8 @@ npm test
 - Jawaban yang belum diperiksa, feedback, urutan soal, dan sesi setiap topik tersimpan di localStorage; reload dan pergantian topik tidak menghapusnya.
 - Topik yang sudah selesai dapat dimainkan kembali tanpa mengunci progres.
 - Setiap soal memberikan 10 XP saat pertama kali dijawab benar. Mengulang soal tidak menggandakan XP.
-- Progres, jawaban, dan sesi C/Python disimpan terpisah. Berpindah pelajaran tidak menghapus draft atau feedback.
-- XP dan misi harian menggabungkan kedua pelajaran. Target harian: lima soal berbeda dijawab benar. Review ikut dihitung sekali per soal per hari. Streak menghitung hari berturut-turut saat target terpenuhi, berdasarkan tanggal lokal perangkat. Streak kemarin tetap ditampilkan selama hari ini masih berlangsung.
+- Progres, jawaban, dan sesi C/Python/Catur disimpan terpisah. Berpindah pelajaran tidak menghapus draft atau feedback.
+- XP dan misi harian menggabungkan semua pelajaran. Target harian: lima soal berbeda dijawab benar. Review ikut dihitung sekali per soal per hari. Streak menghitung hari berturut-turut saat target terpenuhi, berdasarkan tanggal lokal perangkat. Streak kemarin tetap ditampilkan selama hari ini masih berlangsung.
 - Setiap pelajaran menyediakan 40 kartu referensi. Catatan materi C tetap menyediakan 40 kartu asli. Penyelesaian kartu lama dan akses topik dimigrasikan ke skema versi 2, tanpa memberikan XP atau mastery kuis yang belum dikerjakan.
 
 Penyimpanan terbatas pada browser dan origin yang sama. Menghapus data situs menghapus progres; tidak ada sinkronisasi antarperangkat. Jika localStorage tidak tersedia, aplikasi tetap berjalan dengan pemberitahuan bahwa progres tidak tersimpan.

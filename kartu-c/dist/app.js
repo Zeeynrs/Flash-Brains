@@ -10,6 +10,7 @@ import {createSidebar} from './sidebar.js';
 import {burst,rain,countUp,clearEffects} from './effects.js';
 import {mountMatching} from './matching.js';
 import {createLessonEntrance} from './lesson-entrance.js';
+import {mountChess} from './chess-view.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
@@ -21,6 +22,7 @@ try {lastCourseId=storage?.getItem('flash-brains-last-course');} catch { /* Resu
 let content=courseContentById(activeCourseId),topics=content.topics,engine=content.learning,state=states[activeCourseId];
 let screen='home',draft,showGuide=false,courseQuery='';
 let disposeMatching=()=>{};
+let disposeChess=()=>{};
 let lessonEntrance;
 // Names the moment being rendered (correct, wrong, next, finish) so its animation plays once, not on reload.
 let fx=null;
@@ -114,7 +116,7 @@ function renderCourse() {
   const legacy=Object.values(state.learned).some(ids=>ids.length);
   const unit=i=>String(i+1).padStart(2,'0');
   const colors=['green','violet','blue','orange','pink','teal','indigo','gold'];
-  const glyphs=['code','gem','terminal','bolt','branch','repeat','layers','grid'];
+  const glyphs=activeCourse().kind==='chess'?Array(8).fill('chess'):['code','gem','terminal','bolt','branch','repeat','layers','grid'];
   main.innerHTML=`<div class="page"><div class="page-top"><div class="course-chip"><span class="course-symbol" aria-hidden="true">${escape(activeCourse().symbol)}</span><div><h1 tabindex="-1">${escape(activeCourse().title)}</h1><span>${allDone?escape(activeCourse().finishLabel):`${solved}/${total} latihan dikuasai`}</span></div></div>${rewardBar()}</div>
     ${legacy?'<p class="legacy-notice">Progres kartu lamamu aman! Latihan baru sudah menunggu di topik yang terbuka.</p>':''}
     <section class="continue-panel" aria-label="Lanjutkan belajar"><div class="continue-copy"><span class="eyebrow">Unit ${unit(topics.indexOf(active))} · ${continuing?'lanjutkan langkahmu':allDone?'saatnya latihan ulang':'mulai di sini'}</span><h2>${escape(active.title)}</h2><p>${escape(active.description)}</p><button class="primary" data-topic="${active.id}">${continuing?'Lanjut belajar':allDone?'Main lagi':'Ayo, mulai!'} ${icon('arrow')}</button></div>${byteMascot('idle')}</section>
@@ -126,7 +128,7 @@ function renderCourse() {
         return `<button class="topic-row unit-${colors[i]} ${done?'is-done':open?'is-open':'is-locked'} ${active.id===t.id?'is-next':''}" data-topic="${t.id}" ${!open?'disabled':''} style="--bend:${[0,1,2,1][i%4]}"><span class="path-node">${icon(done?'check':open?glyphs[i]:'lock')}<span class="node-unit" aria-hidden="true">${unit(i)}</span></span><span class="topic-content"><span class="topic-title"><span class="sr-only">Unit ${i+1}: </span>${escape(t.title)}${active.id===t.id && open?`<span class="next-badge">${continuing?'Lanjutkan':'Mulai di sini'}</span>`:''}</span><span class="topic-status">${status}</span>${open?`<span class="exercise-track" aria-hidden="true">${exercisesForTopic(t.id).map(ex=>`<span class="${state.solved[t.id]?.includes(ex.id)?'filled':''}"></span>`).join('')}</span>`:''}</span></button>`;
       }).join('')}</div><p class="path-finish">${icon('trophy')}<span>${allDone?'Petualangan tuntas! Terus asah logikamu.':escape(activeCourse().goalLabel)}</span></p></section>
     <footer class="page-footer"><span>Belajar. Coba. Paham. Ulangi.</span><button class="text-button" data-action="guide" aria-expanded="${showGuide}">Cara bermain ${showGuide?'−':'+'}</button></footer>
-    ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Jadi jago, satu soal dulu.</h2><ol><li>Pilih jawabanmu, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca petunjuknya. Soal yang salah menunggu di putaran ulang setelah soal lain selesai.</li><li>Selesaikan 9 latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dari pelajaran mana saja dalam satu hari untuk mencapai misi dan menambah streak. Review dihitung untuk misi harian, tanpa menggandakan XP. Tanggal mengikuti perangkatmu. Progres tersimpan di browser ini dan tidak tersinkron antarperangkat. Kode menggunakan ${escape(activeCourse().codeStandard)} dan tidak dieksekusi di browser.</p></section>`:''}</div>`;
+    ${showGuide?`<section class="guide" aria-label="Cara bermain"><h2>Jadi jago, satu soal dulu.</h2><ol><li>Pilih jawabanmu, lalu tekan <strong>Periksa jawaban</strong>.</li><li>Baca petunjuknya. Soal yang salah menunggu di putaran ulang setelah soal lain selesai.</li><li>Selesaikan 9 latihan dan tantangan akhir untuk membuka topik berikutnya.</li></ol><p>Setiap soal baru yang kamu jawab benar memberi 10 XP, sekali saja. Jawab lima soal berbeda dengan benar dari pelajaran mana saja dalam satu hari untuk mencapai misi dan menambah streak. Review dihitung untuk misi harian, tanpa menggandakan XP. Tanggal mengikuti perangkatmu. Progres tersimpan di browser ini dan tidak tersinkron antarperangkat. ${activeCourse().kind==='chess'?'Pada papan catur, pilih bidak lalu petak tujuannya. Langkah harus sah dan menjaga rajamu aman. Gunakan Ulangi posisi untuk mengubah jawaban sebelum diperiksa.':`Kode menggunakan ${escape(activeCourse().codeStandard)} dan tidak dieksekusi di browser.`}</p></section>`:''}</div>`;
 }
 function renderLearn() {
   const s=session(), topic=currentTopic();
@@ -138,13 +140,13 @@ function renderLearn() {
   const phase=s.phase==='retry'?`<span class="phase-chip phase-retry">${icon('repeat')} Putaran ulang · ${s.queue.length+s.deferred.length} soal</span>`:s.phase==='challenge'?`<span class="phase-chip phase-challenge">${icon('star')} Tantangan akhir</span>`:`<span class="phase-chip">Unit ${String(topics.indexOf(topic)+1).padStart(2,'0')}</span>`;
   main.innerHTML=`<div class="page lesson-page"><div class="quiz-top"><button class="icon-button" data-action="course" aria-label="Kembali ke peta belajar">${icon('back')}</button><div class="quiz-bar" role="progressbar" aria-label="Latihan dituntaskan di sesi ini" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${done}"><span style="--from:${from*10}%;width:${done*10}%"></span></div><span class="quiz-count">${done}/10</span>${rewardBar({streak:false})}</div>
     <header class="lesson-heading"><h1 tabindex="-1">${escape(topic.title)}</h1>${phase}</header>
-    <form id="answer-form" novalidate><article class="quiz-card"><span class="exercise-type">${icon(ex.challenge?'star':ex.type==='order'?'layers':'book')}${escape(typeLabels[ex.type])}</span><h2 id="question" tabindex="-1">${escape(ex.prompt)}</h2>${ex.code?codeBlock(ex.code):''}<div id="answer-controls">${answerControls(ex,draft,s.seed,pending)}</div></article>
+    <form id="answer-form" novalidate><article class="quiz-card"><span class="exercise-type">${icon(ex.challenge?'star':ex.type==='chess'?'chess':ex.type==='order'?'layers':'book')}${escape(typeLabels[ex.type])}</span><h2 id="question" tabindex="-1">${escape(ex.prompt)}</h2>${ex.code?codeBlock(ex.code):''}<div id="answer-controls">${answerControls(ex,draft,s.seed,pending)}</div></article>
     <div id="input-note" class="input-note" aria-live="polite"></div>
     ${pending?feedbackMarkup(ex,pending):''}
     <div class="quiz-actions">${pending?`<button type="button" class="primary check-button" data-action="continue">${s.phase==='challenge' && pending.correct?'Lihat hasil':'Lanjutkan'} ${icon('arrow')}</button>`:`<button type="submit" id="check-answer" class="primary check-button" ${!isAnswerComplete(ex,draft)?'disabled':''}>Periksa jawaban ${icon('check')}</button>`}</div></form>
     ${referenceMarkup(topic,state.learned[topic.id])}</div>`;
   refreshSubmit();
-  setupMatching();
+  setupInteractiveAnswers();
 }
 function renderSummary(topic) {
   const s=session(), next=topics[topics.indexOf(topic)+1], pct=Math.round((s.attempts-s.mistakes)/Math.max(1,s.attempts)*100);
@@ -152,6 +154,7 @@ function renderSummary(topic) {
 }
 function render(focus=false) {
   disposeMatching();disposeMatching=()=>{};
+  disposeChess();disposeChess=()=>{};
   main.dataset.screen=screen;
   main.dataset.course=screen==='home'?'':activeCourseId;
   main.dataset.fx=fx??'';fx=null;
@@ -211,14 +214,19 @@ function refreshSubmit() {
 }
 function renderControls() {
   disposeMatching();disposeMatching=()=>{};
+  disposeChess();disposeChess=()=>{};
   const ex=currentExercise(), s=session();
   document.querySelector('#answer-controls').innerHTML=answerControls(ex,draft,s.seed,s.pending);
   refreshSubmit();
-  setupMatching();
+  setupInteractiveAnswers();
 }
-function setupMatching() {
+function setupInteractiveAnswers() {
   disposeMatching=mountMatching(main.querySelector('.match-control'),{
     input:draft,motionPaused,
+    onChange:input=>{draft=input;persistDraft();refreshSubmit();}
+  });
+  disposeChess=mountChess(main.querySelector('[data-chess-control]'),{
+    exercise:currentExercise(),input:draft,pending:session()?.pending,motionPaused,
     onChange:input=>{draft=input;persistDraft();refreshSubmit();}
   });
 }

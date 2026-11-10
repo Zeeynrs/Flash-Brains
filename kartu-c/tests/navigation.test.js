@@ -4,7 +4,9 @@ import {courses, courseById, searchCourses} from '../dist/courses.js';
 import {parseRoute,courseRoute,lessonRoute} from '../dist/navigation.js';
 
 test('catalog exposes only available real course content with derived counts',()=> {
-  assert.equal(courses.length,2);
+  assert.equal(courses.length,3);
+  assert.equal(courseById('chess').topicCount,8);
+  assert.equal(courseById('chess').exerciseCount,80);
   assert.equal(courseById('python').title,'Pemrograman Python');
   assert.equal(courseById('python').topicCount,8);
   assert.equal(courseById('python').exerciseCount,80);
@@ -17,7 +19,9 @@ test('catalog exposes only available real course content with derived counts',()
   assert.equal(courseById('__proto__'),undefined);
 });
 test('course search matches case-insensitive title, description, category and tags',()=> {
-  for(const query of ['', '  ', 'PEMROGRAMAN']) assert.equal(searchCourses(query).length,2,query);
+  for(const query of ['', '  ']) assert.equal(searchCourses(query).length,3,query);
+  assert.equal(searchCourses('PEMROGRAMAN').length,2);
+  for(const query of ['catur','CHESS','strategi','puzzle']) assert.deepEqual(searchCourses(query).map(c=>c.id),['chess'],query);
   for(const query of ['c','array','dasar C']) assert.deepEqual(searchCourses(query).map(c=>c.id),['c'],query);
   for(const query of ['PYTHON','list','py','dasar python']) assert.deepEqual(searchCourses(query).map(c=>c.id),['python'],query);
   assert.deepEqual(searchCourses('pelajaran yang belum ada'),[]);
