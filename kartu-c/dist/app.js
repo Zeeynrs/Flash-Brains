@@ -70,7 +70,7 @@ function applyMotionPreference() {document.documentElement.dataset.motion=motion
 applyMotionPreference();
 motionMedia.addEventListener('change',()=>{applyMotionPreference();renderSidebar();});
 document.querySelector('.mobile-header .brand-mark').innerHTML=brandMark();
-const shell=createSidebar({sidebar,main,toggle:document.querySelector('#menu-toggle'),backdrop:document.querySelector('#sidebar-backdrop'),storage,onLayout:drawCourseRoute});
+const shell=createSidebar({sidebar,main,toggle:document.querySelector('#menu-toggle'),backdrop:document.querySelector('#sidebar-backdrop'),storage,onLayout:drawCourseRoute,motionPaused});
 function nextTopic() {
   return topics.find(t=>isUnlocked(state,t.id) && !topicComplete(state,t.id)) ?? topics.find(t=>mastered(t)<10 && isUnlocked(state,t.id)) ?? topics[0];
 }
