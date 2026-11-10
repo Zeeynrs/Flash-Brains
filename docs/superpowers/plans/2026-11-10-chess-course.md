@@ -61,7 +61,7 @@
 - [x] Register chess and route the board answer through completion/grading/draft validation. Keep existing C/Python assertions and add derived course totals.
 - [x] Add gold course styling and chess emblem, update general catalog text, remove programming-only guidance from chess.
 - [x] Run full tests and browser regressions: C/Python controls, matching, sidebar, entrance, chess from catalog through final completion, reset/reload/promotion and reduced motion.
-- [ ] Run whole-change review, resolve findings, inspect final diff, commit/push main and verify Vercel production deployment status.
+- [x] Run whole-change review, resolve findings, inspect final diff, commit/push main and verify Vercel production deployment status.
 
 ## Execution ledger
 
@@ -74,3 +74,5 @@
 - Task 3 verification: all 80 chess exercises completed in the real UI, 800 XP, eight completed units and summary restored on reload. Existing C/Python matching, sidebar and study-desk entrance regressions pass.
 - Whole-change review found reversed square colors; reproduced with a failing renderer assertion, corrected, and verified a1 dark/h1 light/d1 light/a8 light in tests and browser. No other important review findings.
 - Full suite: 50 passed, 1 existing Python CRLF-output failure, 41 GCC-unavailable skips. Production release proof follows the final commit/push.
+- Release verified: feature commit `cb7f33d202cedc430754f79509eabcd86ceb99fe` is on origin/main; Vercel production deployment `flash-brains-6t9uy62do-adityadaffa522-9193.vercel.app` reports READY for that exact Git SHA. Course URL: https://flashbrains.site/#/pelajaran/chess.
+- Diff whitespace check passed for project files. Unmodified upstream chess.js retains its generated mixed space/tab indentation; npm runtime SHA256 matched before commit.
