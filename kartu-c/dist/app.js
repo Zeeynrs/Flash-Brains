@@ -9,6 +9,7 @@ import {catalogMarkup,courseCardsMarkup,missionMarkup} from './catalog-view.js';
 import {createSidebar} from './sidebar.js';
 import {burst,rain,countUp,clearEffects} from './effects.js';
 import {mountMatching} from './matching.js';
+import {createLessonEntrance} from './lesson-entrance.js';
 
 let storage;
 try {storage=window.localStorage;} catch {storage=null;}
@@ -20,6 +21,7 @@ try {lastCourseId=storage?.getItem('flash-brains-last-course');} catch { /* Resu
 let content=courseContentById(activeCourseId),topics=content.topics,engine=content.learning,state=states[activeCourseId];
 let screen='home',draft,showGuide=false,courseQuery='';
 let disposeMatching=()=>{};
+let lessonEntrance;
 // Names the moment being rendered (correct, wrong, next, finish) so its animation plays once, not on reload.
 let fx=null;
 const activeCourse=()=>courseById(activeCourseId);
@@ -66,11 +68,15 @@ const motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionChoice=null;
 try {const saved=storage?.getItem('flash-brains-motion');if(saved==='on' || saved==='paused') motionChoice=saved;} catch { /* Preference remains available in memory. */ }
 const motionPaused=()=>motionChoice?motionChoice==='paused':motionMedia.matches;
-function applyMotionPreference() {document.documentElement.dataset.motion=motionPaused()?'paused':'on';}
+function applyMotionPreference() {document.documentElement.dataset.motion=motionPaused()?'paused':'on';if(motionPaused()) lessonEntrance?.finish();}
 applyMotionPreference();
 motionMedia.addEventListener('change',()=>{applyMotionPreference();renderSidebar();});
 document.querySelector('.mobile-header .brand-mark').innerHTML=brandMark();
 const shell=createSidebar({sidebar,main,toggle:document.querySelector('#menu-toggle'),backdrop:document.querySelector('#sidebar-backdrop'),storage,onLayout:drawCourseRoute,motionPaused});
+lessonEntrance=createLessonEntrance({motionPaused,
+  getSurfaces:()=>[document.querySelector('.app-header'),sidebar,main],
+  onComplete:()=>{shell.sync();(main.querySelector('#feedback-title')??main.querySelector('#question')??main.querySelector('h1'))?.focus({preventScroll:true});requestAnimationFrame(drawCourseRoute);}
+});
 function nextTopic() {
   return topics.find(t=>isUnlocked(state,t.id) && !topicComplete(state,t.id)) ?? topics.find(t=>mastered(t)<10 && isUnlocked(state,t.id)) ?? topics[0];
 }
@@ -157,12 +163,14 @@ function render(focus=false) {
   if(focus) (main.querySelector('#feedback-title')??main.querySelector('#question')??main.querySelector('h1'))?.focus({preventScroll:true});
 }
 function setRoute(hash) {
-  if(location.hash===hash) applyRoute(true);
-  else location.hash=hash;
+  if(location.hash!==hash) history.pushState(null,'',hash);
+  applyRoute(true);
 }
-function openCourse(id) {
+function openCourse(id,animate=true) {
   if(!courseById(id) || courseById(id).status!=='available') return;
-  closeMenu();setRoute(courseRoute(id));
+  const enter=()=>{closeMenu();setRoute(courseRoute(id));};
+  if(animate) lessonEntrance.play({course:courseById(id),topics:courseContentById(id).topics,enter});
+  else enter();
 }
 function applyRoute(focus=false) {
   const route=parseRoute(location.hash);
@@ -185,9 +193,11 @@ function applyRoute(focus=false) {
 function navigateTopic(id,courseId=activeCourseId) {
   const bundle=courseContentById(courseId);
   if(!bundle || !bundle.learning.isUnlocked(states[courseId],id)) return;
-  selectCourse(courseId);
-  state=startTopic(state,id);draft=session()?.pending?.input??session()?.draft;persist();closeMenu();
-  rememberCourse();setRoute(lessonRoute(activeCourseId,id));
+  lessonEntrance.play({course:courseById(courseId),topic:bundle.topics.find(t=>t.id===id),topics:bundle.topics,enter:()=>{
+    selectCourse(courseId);
+    state=startTopic(state,id);draft=session()?.pending?.input??session()?.draft;persist();closeMenu();
+    rememberCourse();setRoute(lessonRoute(activeCourseId,id));
+  }});
 }
 function refreshSubmit() {
   const button=document.querySelector('#check-answer');
@@ -221,7 +231,7 @@ function perform(action) {
     announcement.textContent=motionPaused()?'Animasi dimatikan.':'Animasi diaktifkan.';
   }
   if(action==='home') {closeMenu();setRoute('#/');}
-  if(action==='course') {openCourse(activeCourseId);}
+  if(action==='course') {openCourse(activeCourseId,false);}
   if(action==='close-sidebar') {shell.hide();}
   if(action==='guide') {if(screen==='learn'){history.pushState(null,'',courseRoute(activeCourseId));screen='course';showGuide=false;}closeMenu();showGuide=!showGuide;render();main.querySelector('.page-footer [data-action="guide"]')?.focus({preventScroll:true});if(showGuide)main.querySelector('.guide').scrollIntoView({block:'nearest'});}
   if(action==='continue' && session()?.pending) {
@@ -235,6 +245,7 @@ function perform(action) {
   }
 }
 document.addEventListener('click',event=> {
+  if(lessonEntrance.playing) {event.preventDefault();return;}
   if(event.target.closest('.skip')) {
     event.preventDefault();closeMenu();main.focus({preventScroll:true});main.scrollIntoView({block:'start'});return;
   }
@@ -275,7 +286,7 @@ document.addEventListener('change',event=> {
   if(screen!=='learn' || session()?.pending) return;
   if(event.target.name==='choice') {draft=event.target.value;persistDraft();refreshSubmit();}
 });
-window.addEventListener('hashchange',()=>applyRoute(true));
+window.addEventListener('hashchange',()=>{lessonEntrance.cancel();applyRoute(true);});
 window.addEventListener('resize',drawCourseRoute);
 if(!location.hash) history.replaceState(null,'','#/');
 applyRoute(false);
