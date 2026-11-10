@@ -27,6 +27,3 @@ export function byteMascot(mood='idle',className='') {
     <path class="byte-spark byte-spark-two" d="m42 77 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#62c9fa"/>
   </svg>`;
 }
-export function confetti() {
-  return '<div class="confetti" aria-hidden="true">'+Array.from({length:10},(_,i)=>`<i style="--piece:${i}"></i>`).join('')+'</div>';
-}

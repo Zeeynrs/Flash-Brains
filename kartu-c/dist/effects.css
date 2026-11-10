@@ -1,0 +1,63 @@
+/* Moment animations. app.js sets main[data-fx] for one render only, so each plays once and never on reload.
+   Every keyframe ends at the element's normal style: with animations off, nothing is left hidden. */
+.fx-layer {position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+.fx-layer i {position:absolute;display:block;will-change:transform,opacity}
+[data-motion="paused"] .fx-layer {display:none}
+
+/* Correct answer: the card pops, the check draws itself, the bar grows, XP bounces in. */
+main[data-fx="correct"] .quiz-card {animation:fx-glow .7s ease-out}
+main[data-fx="correct"] .answer-correct,
+main[data-fx="correct"] .result-correct input,
+main[data-fx="correct"] .result-correct .code-workspace,
+main[data-fx="correct"] .result-correct select {animation:fx-pop .5s cubic-bezier(.2,.8,.3,1.4)}
+main[data-fx="correct"] .answer-correct>svg path {animation:fx-draw .4s .12s ease-out both}
+main[data-fx="correct"] .quiz-feedback {animation:fx-rise-bounce .55s cubic-bezier(.2,.9,.3,1.25) both}
+main[data-fx="correct"] .xp-earned {animation:fx-stamp .5s .3s cubic-bezier(.2,.8,.3,1.5) both}
+main[data-fx="correct"] .xp-pill {animation:fx-bump .6s .35s ease-out}
+main[data-fx="correct"] .quiz-count {animation:fx-bump .5s .2s ease-out}
+main[data-fx="correct"] .quiz-bar>span {animation:fx-bar .7s cubic-bezier(.3,.8,.3,1) both}
+main[data-fx="correct"] .quiz-bar>span::after {content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgb(255 255 255 / .75) 50%,transparent 70%);animation:fx-shine .8s .25s ease-out both}
+
+/* Wrong answer: a short shake, then the right answer lights up. Gentle on purpose. */
+main[data-fx="wrong"] .quiz-card {animation:fx-shake .5s ease-in-out}
+main[data-fx="wrong"] .answer-wrong>svg {animation:fx-stamp .4s .1s cubic-bezier(.2,.8,.3,1.5) both}
+main[data-fx="wrong"] .answer-correct {animation:fx-reveal .7s .45s ease-out both}
+main[data-fx="wrong"] .answer-correct>svg path {animation:fx-draw .4s .6s ease-out both}
+main[data-fx="wrong"] .quiz-feedback {animation:fx-rise .45s .2s ease-out both}
+main[data-fx="wrong"] .feedback-illustration .byte-body {animation:fx-oops .7s .3s ease-in-out,byte-think 4.5s 1s ease-in-out infinite}
+
+/* Next question slides in. */
+main[data-fx="next"] .quiz-card {animation:fx-slide-in .4s cubic-bezier(.2,.8,.3,1) both}
+main[data-fx="next"] .phase-retry,main[data-fx="next"] .phase-challenge {animation:fx-stamp .5s .2s cubic-bezier(.2,.8,.3,1.5) both}
+
+/* Topic finished: Byte jumps in, the result rises piece by piece, confetti falls (effects.js). */
+main[data-fx="finish"] .summary-celebration .byte-mascot {animation:fx-jump-in .9s cubic-bezier(.2,.8,.3,1.2) both}
+main[data-fx="finish"] .summary-celebration .byte-body {animation:byte-happy .65s .8s cubic-bezier(.2,.8,.3,1.2) 3}
+main[data-fx="finish"] .summary-rays {animation:fx-rays-in .9s .2s ease-out both,fx-spin 28s linear infinite}
+main[data-fx="finish"] .summary>.eyebrow {animation:fx-rise .5s .35s ease-out both}
+main[data-fx="finish"] .summary h1 {animation:fx-rise-bounce .6s .45s cubic-bezier(.2,.9,.3,1.25) both}
+main[data-fx="finish"] .summary-lead {animation:fx-rise .5s .6s ease-out both}
+main[data-fx="finish"] .session-stats>div {animation:fx-stamp .55s cubic-bezier(.2,.8,.3,1.4) both}
+main[data-fx="finish"] .session-stats>div:nth-child(1) {animation-delay:.75s}
+main[data-fx="finish"] .session-stats>div:nth-child(2) {animation-delay:.9s}
+main[data-fx="finish"] .session-stats>div:nth-child(3) {animation-delay:1.05s}
+main[data-fx="finish"] .goal-complete {animation:fx-stamp .5s 1.25s cubic-bezier(.2,.8,.3,1.4) both}
+main[data-fx="finish"] .summary>.primary {animation:fx-rise .5s 1.4s ease-out both}
+main[data-fx="finish"] .summary-repeat {animation:fx-rise .5s 1.55s ease-out both}
+
+@keyframes fx-pop {0% {transform:scale(1)} 40% {transform:scale(1.035)} 100% {transform:scale(1)}}
+@keyframes fx-glow {0% {box-shadow:0 4px 0 #edf1f5,0 0 0 0 rgb(120 215 62 / .55)} 100% {box-shadow:0 4px 0 #edf1f5,0 0 0 22px rgb(120 215 62 / 0)}}
+@keyframes fx-draw {from {stroke-dasharray:30;stroke-dashoffset:30} to {stroke-dasharray:30;stroke-dashoffset:0}}
+@keyframes fx-rise {from {opacity:0;transform:translateY(16px)} to {opacity:1;transform:none}}
+@keyframes fx-rise-bounce {from {opacity:0;transform:translateY(26px) scale(.96)} to {opacity:1;transform:none}}
+@keyframes fx-stamp {from {opacity:0;transform:scale(.4)} to {opacity:1;transform:none}}
+@keyframes fx-bump {0%,100% {transform:scale(1)} 40% {transform:scale(1.25)}}
+@keyframes fx-bar {from {width:var(--from)}}
+@keyframes fx-shine {from {transform:translateX(-100%)} to {transform:translateX(100%)}}
+@keyframes fx-shake {0%,100% {transform:translateX(0)} 15% {transform:translateX(-10px)} 30% {transform:translateX(9px)} 45% {transform:translateX(-7px)} 60% {transform:translateX(5px)} 75% {transform:translateX(-3px)} 90% {transform:translateX(2px)}}
+@keyframes fx-reveal {0% {transform:scale(1);box-shadow:0 3px 0 #b5d79b,0 0 0 0 rgb(120 215 62 / .5)} 40% {transform:scale(1.025)} 100% {transform:scale(1);box-shadow:0 3px 0 #b5d79b,0 0 0 14px rgb(120 215 62 / 0)}}
+@keyframes fx-oops {0%,100% {transform:rotate(0)} 20% {transform:rotate(-11deg)} 45% {transform:rotate(9deg)} 70% {transform:rotate(-6deg)}}
+@keyframes fx-slide-in {from {opacity:0;transform:translateX(36px)} to {opacity:1;transform:none}}
+@keyframes fx-jump-in {0% {opacity:0;transform:translateY(60px) scale(.3)} 55% {opacity:1;transform:translateY(-22px) scale(1.08)} 78% {transform:translateY(5px) scale(.97)} 100% {transform:none}}
+@keyframes fx-rays-in {from {opacity:0;scale:.4} to {opacity:1;scale:1}}
+@keyframes fx-spin {to {rotate:360deg}}

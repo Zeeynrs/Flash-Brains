@@ -22,6 +22,7 @@ npm test
 
 - Tujuh interaksi: pilihan ganda, tebak output, lengkapi kode, susun kode, cari bug, pasangkan konsep, dan teka-teki logika.
 - Tekan Periksa jawaban untuk mendapat penilaian otomatis dan penjelasan, lalu Lanjutkan.
+- Setiap jawaban punya animasinya sendiri: jawaban benar memunculkan konfeti, centang, XP, dan progres yang bertambah; jawaban salah membuat kartu bergetar lalu menyorot jawaban yang tepat. Menuntaskan topik memicu perayaan dengan hujan konfeti dan angka hasil yang menghitung naik. Animasi hanya muncul pada momennya, tidak terulang saat halaman dimuat ulang.
 - Sembilan soal latihan utama dikerjakan lebih dulu. Jawaban salah dikumpulkan untuk putaran ulang setelah soal lain selesai; ulangi tanpa batas sampai benar.
 - Tantangan akhir terbuka setelah sembilan latihan benar. Menyelesaikan tantangan membuka topik berikutnya.
 - Jawaban yang belum diperiksa, feedback, urutan soal, dan sesi setiap topik tersimpan di localStorage; reload dan pergantian topik tidak menghapusnya.
@@ -47,15 +48,16 @@ Pengujian memakai Node built-in test runner. Jika GCC tersedia, suite juga mengo
 - `dist/python-curriculum.js`, `dist/python-quizzes.js`: 40 kartu referensi dan 80 latihan Python.
 - `dist/course-content.js`: pemetaan konten dan mesin progres per pelajaran.
 - `dist/quiz-view.js`: kontrol jawaban, feedback dan catatan referensi.
-- `dist/mascot.js`: karakter SVG Byte, logo dan dekorasi perayaan orisinal.
+- `dist/mascot.js`: karakter SVG Byte dan logo orisinal.
+- `dist/effects.js`, `dist/effects.css`: animasi jawaban benar, salah, soal berikutnya dan topik tuntas.
 - `dist/courses.js`: registry metadata pelajaran yang tersedia dan pencarian katalog.
 - `dist/navigation.js`: parser dan pembuat hash route katalog/pelajaran/topik.
 - `dist/sidebar.js`: preferensi sidebar desktop dan drawer mobile yang mendukung keyboard.
-- `dist/catalog-view.js`: beranda umum, kartu pelajaran, pencarian dan sesi lanjutan.
+- `dist/catalog-view.js`: beranda umum, kartu pelajaran, pencarian, misi harian dan sesi lanjutan.
 - `dist/app.js`: antarmuka dan penyimpanan browser.
-- `dist/styles.css`, `dist/quiz.css` dan `dist/catalog.css`: tampilan responsif.
+- `dist/styles.css` (dasar, kerangka aplikasi, peta belajar), `dist/quiz.css` (latihan dan hasil) dan `dist/catalog.css` (beranda): tampilan responsif satu kolom.
 - `tests/`: pengujian penilaian, alur belajar, migrasi, reward dan ketepatan contoh C/Python dan pemisahan progres pelajaran.
 
-Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dekoratif dapat dijeda melalui tombol **Animasi aktif** di sidebar atau menu pada HP; pilihan diingat di browser. Preferensi perangkat untuk mengurangi gerakan selalu dihormati.
+Tampilan memakai Nunito dari Google Fonts dengan fallback font sistem. Karakter Byte, jalur level dan ilustrasi dibuat dengan SVG, tanpa dependensi animasi tambahan. Animasi dapat dimatikan atau dinyalakan melalui tombol **Animasi aktif / Animasi mati** di sidebar atau menu pada HP; pilihan diingat di browser. Jika perangkat meminta gerakan dikurangi (misalnya "Show animations in Windows" dimatikan), animasi mati secara bawaan sampai pengguna menyalakannya sendiri lewat tombol itu.
 
 Beranda `#/` menampilkan pelajaran yang benar-benar tersedia. C mempunyai halaman sendiri di `#/pelajaran/c`, dengan topik di `#/pelajaran/c/topik/<id>`. Python tersedia di `#/pelajaran/python` dengan topik `#/pelajaran/python/topik/<id>`. Urutan Python: kenalan, variabel dan tipe data, input/output, operator, percabangan, perulangan, list, lalu slicing dan list bersarang. Pelajaran yang belum dibuka atau belum tersedia tidak dapat diakses melalui deep link. Menutup sidebar desktop memberi lebih banyak ruang baca; preferensinya terpisah dari data kuis. Drawer HP menutup saat navigasi tanpa mengubah preferensi desktop.
